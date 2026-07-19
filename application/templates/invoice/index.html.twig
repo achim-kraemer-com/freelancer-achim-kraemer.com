@@ -1,0 +1,36 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Rechnungen · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div><h1>Rechnungen</h1><p class="sub">{{ invoices|length }} Rechnung(en)</p></div>
+    </div>
+
+    {% if invoices is empty %}
+        <div class="empty">Noch keine Rechnungen. Erstelle eine Rechnung aus den Aufgaben eines Projekts.</div>
+    {% else %}
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr><th>Nummer</th><th>Kunde</th><th>Projekt</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                        <tr>
+                            <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                            <td class="muted">{{ invoice.customer }}</td>
+                            <td class="muted">{{ invoice.project ? invoice.project.name : '—' }}</td>
+                            <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                            <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                            <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                            <td class="num">
+                                <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-ghost btn-sm">PDF</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,2 @@
+#!/bin/bash
+docker exec -it freelancer-ak-app php bin/console "$@"

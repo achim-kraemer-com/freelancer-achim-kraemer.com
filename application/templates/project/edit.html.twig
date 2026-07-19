@@ -1,0 +1,21 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Projekt bearbeiten · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb">
+        <a href="{{ path('admin_customer_show', {id: project.customer.id}) }}">{{ project.customer }}</a> /
+        <a href="{{ path('admin_project_show', {id: project.id}) }}">{{ project.name }}</a> / Bearbeiten
+    </div>
+    <div class="page-head"><h1>Projekt bearbeiten</h1></div>
+
+    <div class="card form-card">
+        {% include 'project/_form.html.twig' with { cancel_path: path('admin_project_show', {id: project.id}) } %}
+    </div>
+
+    <form method="post" action="{{ path('admin_project_delete', {id: project.id}) }}"
+          onsubmit="return confirm('Projekt inkl. Aufgaben wirklich löschen?');" style="margin-top:1.5rem;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ project.id) }}">
+        <button class="btn btn-danger btn-sm">Projekt löschen</button>
+    </form>
+{% endblock %}

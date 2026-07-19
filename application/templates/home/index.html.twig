@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Achim Krämer · Symfony Freelancer{% endblock %}
+
+{% block body %}
+    <nav class="site-nav">
+        <a href="{{ path('app_home') }}" class="brand">
+            <span class="dot"></span> Achim Krämer
+        </a>
+        <div class="nav-actions">
+            {% if app.user %}
+                <a href="{{ path('app_dashboard') }}" class="btn btn-ghost">Dashboard</a>
+                <a href="{{ path('app_logout') }}" class="btn btn-primary">Logout</a>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn btn-primary">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <header class="hero">
+        <span class="eyebrow animate-in">⚡ Symfony · PHP · 15+ Jahre</span>
+        <h1 class="animate-in delay-1">
+            Ihr <span class="gradient-text">Symfony Freelancer</span> für anspruchsvolle Web-Projekte
+        </h1>
+        <p class="lead animate-in delay-2">
+            Von der API bis zum kompletten Portal — saubere Architektur, moderne Tools
+            und über 15 Jahre PHP-Erfahrung für Ihr nächstes Projekt.
+        </p>
+        <div class="hero-actions animate-in delay-3">
+            {% if app.user %}
+                <a href="{{ path('app_dashboard') }}" class="btn btn-primary">Zum Dashboard →</a>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn btn-primary">Anmelden →</a>
+            {% endif %}
+            <a href="mailto:mail@achim-kraemer.com" class="btn btn-ghost">Kontakt aufnehmen</a>
+        </div>
+
+        <div class="container feature-grid">
+            <div class="card feature animate-in delay-1">
+                <div class="icon">🚀</div>
+                <h3>Symfony &amp; API</h3>
+                <p>Robuste Backends, saubere REST-/API-Schnittstellen und wartbare Domänenmodelle.</p>
+            </div>
+            <div class="card feature animate-in delay-2">
+                <div class="icon">🐳</div>
+                <h3>Docker &amp; DevOps</h3>
+                <p>Reproduzierbare Umgebungen, CI/CD-Pipelines und ein reibungsloses Deployment.</p>
+            </div>
+            <div class="card feature animate-in delay-3">
+                <div class="icon">🤖</div>
+                <h3>KI-Integration</h3>
+                <p>Agentic AI und LLM-Anbindung, sinnvoll und sicher in bestehende Systeme integriert.</p>
+            </div>
+        </div>
+    </header>
+{% endblock %}

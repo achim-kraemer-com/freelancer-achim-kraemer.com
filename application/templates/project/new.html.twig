@@ -1,0 +1,15 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Neues Projekt · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb">
+        <a href="{{ path('admin_customer_index') }}">Kunden</a> /
+        <a href="{{ path('admin_customer_show', {id: customer.id}) }}">{{ customer }}</a> / Neues Projekt
+    </div>
+    <div class="page-head"><h1>Neues Projekt</h1></div>
+
+    <div class="card form-card">
+        {% include 'project/_form.html.twig' with { cancel_path: path('admin_customer_show', {id: customer.id}) } %}
+    </div>
+{% endblock %}

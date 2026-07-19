@@ -1,0 +1,8 @@
+{{ form_start(form) }}
+    <div class="form-row">{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
+    <div class="form-row">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="{{ cancel_path }}" class="btn btn-ghost">Abbrechen</a>
+    </div>
+{{ form_end(form) }}

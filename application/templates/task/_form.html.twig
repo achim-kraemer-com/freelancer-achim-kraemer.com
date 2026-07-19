@@ -1,0 +1,19 @@
+{{ form_start(form) }}
+    {{ form_errors(form) }}
+    <div class="form-row">{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
+    <div class="form-row">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
+    <div class="form-grid">
+        <div class="form-row">
+            {{ form_label(form.hours) }}{{ form_widget(form.hours) }}
+            <span class="form-help">{{ form_help(form.hours) }}</span>{{ form_errors(form.hours) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.price) }}{{ form_widget(form.price) }}
+            <span class="form-help">{{ form_help(form.price) }}</span>{{ form_errors(form.price) }}
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="{{ cancel_path }}" class="btn btn-ghost">Abbrechen</a>
+    </div>
+{{ form_end(form) }}

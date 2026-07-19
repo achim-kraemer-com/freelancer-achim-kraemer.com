@@ -1,0 +1,82 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Rechnung {{ invoice.number }} · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_invoice_index') }}">Rechnungen</a> / {{ invoice.number }}</div>
+
+    <div class="page-head">
+        <div>
+            <h1>Rechnung {{ invoice.number }}</h1>
+            <p class="sub"><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-primary">PDF herunterladen</a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="card detail-card">
+            <h3>Rechnung</h3>
+            <dl>
+                <dt>Nummer</dt><dd>{{ invoice.number }}</dd>
+                <dt>Datum</dt><dd>{{ invoice.invoiceDate|date('d.m.Y') }}</dd>
+                <dt>Betrag</dt><dd>{{ invoice.totalAmount|number_format(2, ',', '.') }} €</dd>
+            </dl>
+        </div>
+        <div class="card detail-card">
+            <h3>Kunde &amp; Projekt</h3>
+            <dl>
+                <dt>Kunde</dt><dd><a href="{{ path('admin_customer_show', {id: invoice.customer.id}) }}">{{ invoice.customer }}</a></dd>
+                {% if invoice.project %}<dt>Projekt</dt><dd><a href="{{ path('admin_project_show', {id: invoice.project.id}) }}">{{ invoice.project.name }}</a></dd>{% endif %}
+            </dl>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>Positionen</h2></div>
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr><th style="width:2rem;">#</th><th>Aufgabe</th><th class="num">Stunden</th><th class="num">Kosten (€)</th></tr>
+                </thead>
+                <tbody>
+                    {% for task in invoice.tasks %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ task.name }}{% if task.description %}<div class="muted">{{ task.description|nl2br }}</div>{% endif %}</td>
+                            <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                            <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="num"><strong>Gesamt</strong></td>
+                        <td class="num"><strong>{{ invoice.totalAmount|number_format(2, ',', '.') }} €</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>Status ändern</h2></div>
+        <div class="head-actions">
+            {% for label, value in constant('App\\Entity\\Invoice::STATUS_CHOICES') %}
+                <form method="post" action="{{ path('admin_invoice_status', {id: invoice.id}) }}" class="inline-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('status' ~ invoice.id) }}">
+                    <input type="hidden" name="status" value="{{ value }}">
+                    <button class="btn btn-sm {{ invoice.status == value ? 'btn-primary' : 'btn-ghost' }}"
+                            {{ invoice.status == value ? 'disabled' }}>{{ label }}</button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+
+    <form method="post" action="{{ path('admin_invoice_delete', {id: invoice.id}) }}"
+          onsubmit="return confirm('Rechnung löschen? Die Aufgaben werden wieder als offen markiert.');" style="margin-top:2.5rem;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ invoice.id) }}">
+        <button class="btn btn-danger btn-sm">Rechnung löschen</button>
+    </form>
+{% endblock %}

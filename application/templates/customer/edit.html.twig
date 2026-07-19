@@ -1,0 +1,21 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Kunde bearbeiten · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb">
+        <a href="{{ path('admin_customer_index') }}">Kunden</a> /
+        <a href="{{ path('admin_customer_show', {id: customer.id}) }}">{{ customer }}</a> / Bearbeiten
+    </div>
+    <div class="page-head"><h1>Kunde bearbeiten</h1></div>
+
+    <div class="card form-card">
+        {% include 'customer/_form.html.twig' with { cancel_path: path('admin_customer_show', {id: customer.id}) } %}
+    </div>
+
+    <form method="post" action="{{ path('admin_customer_delete', {id: customer.id}) }}"
+          class="inline-form" onsubmit="return confirm('Kunde inkl. Projekte und Aufgaben wirklich löschen?');" style="margin-top:1.5rem; display:block;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ customer.id) }}">
+        <button class="btn btn-danger btn-sm">Kunde löschen</button>
+    </form>
+{% endblock %}

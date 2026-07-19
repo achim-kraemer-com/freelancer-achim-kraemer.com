@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login · Achim Krämer{% endblock %}
+
+{% block body %}
+    <div class="auth-shell">
+        <form method="post" class="card auth-card animate-in">
+            <a href="{{ path('app_home') }}" class="brand">
+                <span class="dot"></span> Achim Krämer
+            </a>
+
+            <h1>Willkommen zurück</h1>
+            <p class="subtitle">Bitte melden Sie sich an, um fortzufahren.</p>
+
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="alert alert-info">
+                    Sie sind bereits als {{ app.user.userIdentifier }} angemeldet.
+                    <a href="{{ path('app_logout') }}">Logout</a>
+                </div>
+            {% endif %}
+
+            <div class="field">
+                <label for="username">E-Mail</label>
+                <input type="email" id="username" name="_username" value="{{ last_username }}"
+                       placeholder="name@beispiel.de" autocomplete="email" required autofocus>
+            </div>
+
+            <div class="field">
+                <label for="password">Passwort</label>
+                <input type="password" id="password" name="_password"
+                       placeholder="••••••••" autocomplete="current-password" required>
+            </div>
+
+            <div class="field-row">
+                <label class="checkbox">
+                    <input type="checkbox" name="_remember_me"> Angemeldet bleiben
+                </label>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="btn btn-primary btn-block">Anmelden</button>
+
+            <p class="auth-footer">← <a href="{{ path('app_home') }}">Zurück zur Startseite</a></p>
+        </form>
+    </div>
+{% endblock %}

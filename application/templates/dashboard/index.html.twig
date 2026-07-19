@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard · Achim Krämer{% endblock %}
+
+{% block body %}
+    <nav class="site-nav">
+        <a href="{{ path('app_home') }}" class="brand">
+            <span class="dot"></span> Achim Krämer
+        </a>
+        <div class="nav-actions">
+            <span class="badge">{{ 'ROLE_ADMIN' in app.user.roles ? 'Admin' : 'User' }}</span>
+            <a href="{{ path('app_logout') }}" class="btn btn-ghost">Logout</a>
+        </div>
+    </nav>
+
+    <main class="dashboard">
+        <div class="welcome animate-in">
+            <h1>Hallo, <span class="gradient-text">{{ app.user.userIdentifier }}</span> 👋</h1>
+            <p>Willkommen im geschützten Bereich. Nur angemeldete Nutzer sehen diese Seite.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="card stat animate-in delay-1">
+                <div class="label">Status</div>
+                <div class="value accent">Aktiv</div>
+            </div>
+            <div class="card stat animate-in delay-2">
+                <div class="label">Rollen</div>
+                <div class="value">{{ app.user.roles|length }}</div>
+            </div>
+            <div class="card stat animate-in delay-3">
+                <div class="label">Session</div>
+                <div class="value">🔒</div>
+            </div>
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <div class="hero-actions" style="justify-content:flex-start; margin-top:2.5rem;">
+                <a href="{{ path('admin_customer_index') }}" class="btn btn-primary">Kunden verwalten →</a>
+                <a href="{{ path('admin_invoice_index') }}" class="btn btn-ghost">Rechnungen</a>
+            </div>
+        {% endif %}
+    </main>
+{% endblock %}

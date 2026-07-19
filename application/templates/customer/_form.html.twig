@@ -1,0 +1,23 @@
+{{ form_start(form) }}
+    <div class="form-grid">
+        <div class="form-row">{{ form_label(form.firstname) }}{{ form_widget(form.firstname) }}{{ form_errors(form.firstname) }}</div>
+        <div class="form-row">{{ form_label(form.lastname) }}{{ form_widget(form.lastname) }}{{ form_errors(form.lastname) }}</div>
+        <div class="form-row full">{{ form_label(form.companyName) }}{{ form_widget(form.companyName) }}{{ form_errors(form.companyName) }}</div>
+        <div class="form-row">{{ form_label(form.email) }}{{ form_widget(form.email) }}{{ form_errors(form.email) }}</div>
+        <div class="form-row">{{ form_label(form.website) }}{{ form_widget(form.website) }}{{ form_errors(form.website) }}</div>
+        <div class="form-row">{{ form_label(form.phone) }}{{ form_widget(form.phone) }}{{ form_errors(form.phone) }}</div>
+        <div class="form-row">{{ form_label(form.mobile) }}{{ form_widget(form.mobile) }}{{ form_errors(form.mobile) }}</div>
+        <div class="form-row">{{ form_label(form.street) }}{{ form_widget(form.street) }}{{ form_errors(form.street) }}</div>
+        <div class="form-row">{{ form_label(form.housenumber) }}{{ form_widget(form.housenumber) }}{{ form_errors(form.housenumber) }}</div>
+        <div class="form-row">{{ form_label(form.plz) }}{{ form_widget(form.plz) }}{{ form_errors(form.plz) }}</div>
+        <div class="form-row">{{ form_label(form.city) }}{{ form_widget(form.city) }}{{ form_errors(form.city) }}</div>
+        <div class="form-row">{{ form_label(form.country) }}{{ form_widget(form.country) }}{{ form_errors(form.country) }}</div>
+        <div class="form-row full">
+            <div class="checkbox-row">{{ form_widget(form.isActive) }}{{ form_label(form.isActive) }}</div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="{{ cancel_path }}" class="btn btn-ghost">Abbrechen</a>
+    </div>
+{{ form_end(form) }}

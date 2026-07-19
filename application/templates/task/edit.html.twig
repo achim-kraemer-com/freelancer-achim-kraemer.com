@@ -1,0 +1,20 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Aufgabe bearbeiten · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb">
+        <a href="{{ path('admin_project_show', {id: task.project.id}) }}">{{ task.project.name }}</a> / Aufgabe bearbeiten
+    </div>
+    <div class="page-head"><h1>Aufgabe bearbeiten</h1></div>
+
+    <div class="card form-card">
+        {% include 'task/_form.html.twig' with { cancel_path: path('admin_project_show', {id: task.project.id}) } %}
+    </div>
+
+    <form method="post" action="{{ path('admin_task_delete', {id: task.id}) }}"
+          onsubmit="return confirm('Aufgabe wirklich löschen?');" style="margin-top:1.5rem;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+        <button class="btn btn-danger btn-sm">Aufgabe löschen</button>
+    </form>
+{% endblock %}

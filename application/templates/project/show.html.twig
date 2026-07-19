@@ -1,0 +1,95 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ project.name }} · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb">
+        <a href="{{ path('admin_customer_index') }}">Kunden</a> /
+        <a href="{{ path('admin_customer_show', {id: project.customer.id}) }}">{{ project.customer }}</a> /
+        {{ project.name }}
+    </div>
+
+    <div class="page-head">
+        <div>
+            <h1>{{ project.name }}</h1>
+            {% if project.description %}<p class="sub">{{ project.description }}</p>{% endif %}
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_project_edit', {id: project.id}) }}" class="btn btn-ghost">Bearbeiten</a>
+            <a href="{{ path('admin_task_new', {id: project.id}) }}" class="btn btn-primary">+ Neue Aufgabe</a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="card stat"><div class="label">Aufgaben</div><div class="value">{{ project.tasks|length }}</div></div>
+        <div class="card stat"><div class="label">Offen</div><div class="value accent">{{ project.openTotalCost|number_format(2, ',', '.') }} €</div></div>
+        <div class="card stat"><div class="label">Gesamt</div><div class="value">{{ project.totalCost|number_format(2, ',', '.') }} €</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-head">
+            <h2>Aufgaben</h2>
+            <a href="{{ path('admin_task_new', {id: project.id}) }}" class="btn btn-ghost btn-sm">+ Aufgabe</a>
+        </div>
+
+        {% if project.tasks is empty %}
+            <div class="empty">Noch keine Aufgaben. Lege die erste Aufgabe an.</div>
+        {% else %}
+            <form method="post" action="{{ path('admin_project_create_invoice', {id: project.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('create-invoice' ~ project.id) }}">
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                            <tr>
+                                <th style="width:2rem;"></th>
+                                <th>Aufgabe</th>
+                                <th class="num">Stunden</th>
+                                <th class="num">Kosten (€)</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in project.tasks %}
+                                <tr>
+                                    <td class="pick">
+                                        {% if not task.invoiced %}
+                                            <input type="checkbox" name="tasks[]" value="{{ task.id }}">
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ task.name }}
+                                        {% if task.description %}<div class="muted">{{ task.description|nl2br }}</div>{% endif %}
+                                    </td>
+                                    <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                                    <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                                    <td>
+                                        {% if task.invoiced %}
+                                            <span class="status status-verschickt">Abgerechnet</span>
+                                        {% else %}
+                                            <span class="status status-bezahlt">Offen</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="num">
+                                        {% if not task.invoiced %}
+                                            <a href="{{ path('admin_task_edit', {id: task.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
+                                        {% elseif task.invoice %}
+                                            <a href="{{ path('admin_invoice_show', {id: task.invoice.id}) }}" class="btn btn-ghost btn-sm">Rechnung</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if project.openTotalCost > 0 %}
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Rechnung aus Auswahl erstellen</button>
+                        <span class="form-help">Wähle offene Aufgaben aus – daraus wird ein Rechnungs-PDF erzeugt.</span>
+                    </div>
+                {% endif %}
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}

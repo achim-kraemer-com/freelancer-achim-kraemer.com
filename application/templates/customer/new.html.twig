@@ -1,0 +1,12 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Neuer Kunde · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_customer_index') }}">Kunden</a> / Neu</div>
+    <div class="page-head"><h1>Neuer Kunde</h1></div>
+
+    <div class="card form-card">
+        {% include 'customer/_form.html.twig' with { cancel_path: path('admin_customer_index') } %}
+    </div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Kunden · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Kunden</h1>
+            <p class="sub">{{ customers|length }} Kunde(n) insgesamt</p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_customer_new') }}" class="btn btn-primary">+ Neuer Kunde</a>
+        </div>
+    </div>
+
+    {% if customers is empty %}
+        <div class="empty">Noch keine Kunden angelegt. Lege deinen ersten Kunden an.</div>
+    {% else %}
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Firma / Name</th>
+                        <th>E-Mail</th>
+                        <th>Ort</th>
+                        <th class="num">Projekte</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('admin_customer_show', {id: customer.id}) }}">
+                                    {{ customer.companyName ?: (customer.firstname ~ ' ' ~ customer.lastname) }}
+                                </a>
+                                {% if customer.companyName %}<div class="muted">{{ customer.firstname }} {{ customer.lastname }}</div>{% endif %}
+                            </td>
+                            <td class="muted">{{ customer.email }}</td>
+                            <td class="muted">{{ customer.plz }} {{ customer.city }}</td>
+                            <td class="num">{{ customer.projects|length }}</td>
+                            <td>
+                                {% if customer.active %}
+                                    <span class="status status-bezahlt">Aktiv</span>
+                                {% else %}
+                                    <span class="status status-verschickt">Inaktiv</span>
+                                {% endif %}
+                            </td>
+                            <td class="num">
+                                <a href="{{ path('admin_customer_edit', {id: customer.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

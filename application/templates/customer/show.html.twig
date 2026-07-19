@@ -1,0 +1,91 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ customer }} · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_customer_index') }}">Kunden</a> / {{ customer }}</div>
+
+    <div class="page-head">
+        <div>
+            <h1>{{ customer.companyName ?: (customer.firstname ~ ' ' ~ customer.lastname) }}</h1>
+            {% if customer.companyName %}<p class="sub">{{ customer.firstname }} {{ customer.lastname }}</p>{% endif %}
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_customer_edit', {id: customer.id}) }}" class="btn btn-ghost">Bearbeiten</a>
+            <a href="{{ path('admin_project_new', {id: customer.id}) }}" class="btn btn-primary">+ Neues Projekt</a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="card detail-card">
+            <h3>Kontakt</h3>
+            <dl>
+                <dt>E-Mail</dt><dd>{{ customer.email }}</dd>
+                {% if customer.phone %}<dt>Telefon</dt><dd>{{ customer.phone }}</dd>{% endif %}
+                {% if customer.mobile %}<dt>Mobil</dt><dd>{{ customer.mobile }}</dd>{% endif %}
+                {% if customer.website %}<dt>Website</dt><dd>{{ customer.website }}</dd>{% endif %}
+            </dl>
+        </div>
+        <div class="card detail-card">
+            <h3>Adresse</h3>
+            <dl>
+                <dt>Straße</dt><dd>{{ customer.street }} {{ customer.housenumber }}</dd>
+                <dt>Ort</dt><dd>{{ customer.plz }} {{ customer.city }}</dd>
+                {% if customer.country %}<dt>Land</dt><dd>{{ customer.country }}</dd>{% endif %}
+            </dl>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head">
+            <h2>Projekte</h2>
+            <a href="{{ path('admin_project_new', {id: customer.id}) }}" class="btn btn-ghost btn-sm">+ Projekt</a>
+        </div>
+        {% if customer.projects is empty %}
+            <div class="empty">Noch keine Projekte für diesen Kunden.</div>
+        {% else %}
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr><th>Projekt</th><th class="num">Aufgaben</th><th class="num">Offen (€)</th><th class="num">Gesamt (€)</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for project in customer.projects %}
+                            <tr>
+                                <td><a href="{{ path('admin_project_show', {id: project.id}) }}">{{ project.name }}</a></td>
+                                <td class="num">{{ project.tasks|length }}</td>
+                                <td class="num">{{ project.openTotalCost|number_format(2, ',', '.') }}</td>
+                                <td class="num">{{ project.totalCost|number_format(2, ',', '.') }}</td>
+                                <td class="num"><a href="{{ path('admin_project_show', {id: project.id}) }}" class="btn btn-ghost btn-sm">Öffnen</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if customer.invoices is not empty %}
+        <div class="section">
+            <div class="section-head"><h2>Rechnungen</h2></div>
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr><th>Nummer</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in customer.invoices %}
+                            <tr>
+                                <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                                <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                                <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                                <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                                <td class="num"><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}" class="btn btn-ghost btn-sm">Öffnen</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
