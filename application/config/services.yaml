@@ -9,6 +9,11 @@
 parameters:
     pdf_template_path: '%kernel.project_dir%/config/pdfs/'
     invoices_path: '%kernel.project_dir%/var/invoices/'
+    # Absenderadresse für ausgehende E-Mails (z. B. Rechnungsversand).
+    mailer_from: 'kontakt@achim-kraemer.com'
+    mailer_from_name: 'Achim Krämer'
+    # Fallback, falls MAILER_DSN nicht in .env/.env.local gesetzt ist (verhindert Boot-Fehler).
+    env(MAILER_DSN): 'null://null'
 
 services:
     # default configuration for services in *this* file
