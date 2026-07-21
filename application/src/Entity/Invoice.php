@@ -19,6 +19,9 @@ class Invoice
     final public const string STATUS_SENT    = 'verschickt';
     final public const string STATUS_PAID    = 'bezahlt';
 
+    /** Default payment term (days) added to the invoice date to derive the due date. */
+    final public const int DEFAULT_PAYMENT_TERM_DAYS = 14;
+
     /** @var array<string, string> label => value, for form choices */
     final public const array STATUS_CHOICES = [
         'Erstellt'   => self::STATUS_CREATED,
@@ -45,6 +48,12 @@ class Invoice
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $invoiceDate = null;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dueDate = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paidAt = null;
+
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $totalAmount = null;
 
@@ -60,9 +69,17 @@ class Invoice
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'invoice')]
     private Collection $tasks;
 
+    /**
+     * @var Collection<int, InvoiceDispatch>
+     */
+    #[ORM\OneToMany(targetEntity: InvoiceDispatch::class, mappedBy: 'invoice', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['sentAt' => 'DESC'])]
+    private Collection $dispatches;
+
     public function __construct()
     {
         $this->tasks       = new ArrayCollection();
+        $this->dispatches  = new ArrayCollection();
         $this->invoiceDate = new \DateTime();
     }
 
@@ -122,6 +139,54 @@ class Invoice
         $this->invoiceDate = $invoiceDate;
 
         return $this;
+    }
+
+    public function getDueDate(): ?\DateTimeInterface
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate(?\DateTimeInterface $dueDate): static
+    {
+        $this->dueDate = $dueDate;
+
+        return $this;
+    }
+
+    public function getPaidAt(): ?\DateTimeInterface
+    {
+        return $this->paidAt;
+    }
+
+    public function setPaidAt(?\DateTimeInterface $paidAt): static
+    {
+        $this->paidAt = $paidAt;
+
+        return $this;
+    }
+
+    /** True when the invoice is unpaid and its due date lies in the past. */
+    public function isOverdue(): bool
+    {
+        if ($this->status === self::STATUS_PAID || $this->dueDate === null) {
+            return false;
+        }
+
+        return $this->dueDate < new \DateTime('today');
+    }
+
+    /** Whole days until (positive) or since (negative) the due date; null if none set. */
+    public function getDaysUntilDue(): ?int
+    {
+        if ($this->dueDate === null) {
+            return null;
+        }
+
+        $today = new \DateTime('today');
+        $due   = \DateTime::createFromInterface($this->dueDate)->setTime(0, 0);
+        $diff  = $today->diff($due);
+
+        return (int) $diff->format('%r%a');
     }
 
     public function getTotalAmount(): ?string
@@ -187,5 +252,42 @@ class Invoice
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, InvoiceDispatch>
+     */
+    public function getDispatches(): Collection
+    {
+        return $this->dispatches;
+    }
+
+    public function addDispatch(InvoiceDispatch $dispatch): static
+    {
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches->add($dispatch);
+            $dispatch->setInvoice($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatch(InvoiceDispatch $dispatch): static
+    {
+        if ($this->dispatches->removeElement($dispatch)) {
+            if ($dispatch->getInvoice() === $this) {
+                $dispatch->setInvoice(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /** The most recent time this invoice was e-mailed, or null if never sent. */
+    public function getLastSentAt(): ?\DateTimeImmutable
+    {
+        $first = $this->dispatches->first();
+
+        return $first ? $first->getSentAt() : null;
     }
 }

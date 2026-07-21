@@ -39,4 +39,42 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Open (not yet invoiced) tasks, most recent first, with project and
+     * customer eagerly loaded for dashboard listing.
+     *
+     * @return Task[]
+     */
+    public function findOpen(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.project', 'p')->addSelect('p')
+            ->join('p.customer', 'c')->addSelect('c')
+            ->andWhere('t.invoiced = false')
+            ->orderBy('t.createdAt', 'DESC')
+            ->addOrderBy('t.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Open (not yet invoiced) tasks for the time-tracking dropdown,
+     * ordered so they can be grouped by customer and project.
+     *
+     * @return Task[]
+     */
+    public function findOpenForTracking(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.project', 'p')->addSelect('p')
+            ->join('p.customer', 'c')->addSelect('c')
+            ->andWhere('t.invoiced = false')
+            ->orderBy('c.companyName', 'ASC')
+            ->addOrderBy('c.lastname', 'ASC')
+            ->addOrderBy('p.name', 'ASC')
+            ->addOrderBy('t.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

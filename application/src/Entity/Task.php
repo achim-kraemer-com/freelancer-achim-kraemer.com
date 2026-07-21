@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\TaskRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -14,6 +16,17 @@ class Task
 {
     /** Hourly rate in EUR used when a task is billed by time. */
     final public const int HOURLY_RATE = 60;
+
+    final public const string STATUS_OPEN        = 'offen';
+    final public const string STATUS_IN_PROGRESS = 'in Arbeit';
+    final public const string STATUS_DONE        = 'erledigt';
+
+    /** @var array<string, string> label => value, for form choices */
+    final public const array STATUS_CHOICES = [
+        'Offen'     => self::STATUS_OPEN,
+        'In Arbeit' => self::STATUS_IN_PROGRESS,
+        'Erledigt'  => self::STATUS_DONE,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -44,6 +57,9 @@ class Task
     #[ORM\Column]
     private bool $invoiced = false;
 
+    #[ORM\Column(length: 20, options: ['default' => self::STATUS_OPEN])]
+    private string $status = self::STATUS_OPEN;
+
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -51,9 +67,17 @@ class Task
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Invoice $invoice = null;
 
+    /**
+     * @var Collection<int, TimeEntry>
+     */
+    #[ORM\OneToMany(targetEntity: TimeEntry::class, mappedBy: 'task', orphanRemoval: true)]
+    #[ORM\OrderBy(['workDate' => 'DESC', 'id' => 'DESC'])]
+    private Collection $timeEntries;
+
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->createdAt   = new \DateTime();
+        $this->timeEntries = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -131,6 +155,24 @@ class Task
         return $this->invoiced;
     }
 
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /** URL/CSS-safe slug of the status ("in Arbeit" -> "in-arbeit"). */
+    public function getStatusSlug(): string
+    {
+        return str_replace(' ', '-', strtolower($this->status));
+    }
+
     public function setInvoiced(bool $invoiced): static
     {
         $this->invoiced = $invoiced;
@@ -183,5 +225,34 @@ class Task
     public function isHourly(): bool
     {
         return null === $this->price && null !== $this->hours;
+    }
+
+    /**
+     * @return Collection<int, TimeEntry>
+     */
+    public function getTimeEntries(): Collection
+    {
+        return $this->timeEntries;
+    }
+
+    public function addTimeEntry(TimeEntry $timeEntry): static
+    {
+        if (!$this->timeEntries->contains($timeEntry)) {
+            $this->timeEntries->add($timeEntry);
+            $timeEntry->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTimeEntry(TimeEntry $timeEntry): static
+    {
+        if ($this->timeEntries->removeElement($timeEntry)) {
+            if ($timeEntry->getTask() === $this) {
+                $timeEntry->setTask(null);
+            }
+        }
+
+        return $this;
     }
 }

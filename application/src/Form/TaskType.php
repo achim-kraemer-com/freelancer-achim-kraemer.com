@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\Task;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -41,6 +42,10 @@ class TaskType extends AbstractType
                 'html5'    => true,
                 'attr'     => ['step' => '0.01', 'min' => '0', 'placeholder' => 'optional'],
                 'help'     => 'Wenn gesetzt, überschreibt der Festpreis die Stundenberechnung.',
+            ])
+            ->add('status', ChoiceType::class, [
+                'label'   => 'Status',
+                'choices' => Task::STATUS_CHOICES,
             ]);
 
         // Require at least one of hours / price.
