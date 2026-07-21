@@ -6,15 +6,26 @@
     <div class="page-head">
         <div>
             <h1>Kunden</h1>
-            <p class="sub">{{ customers|length }} Kunde(n) insgesamt</p>
+            <p class="sub">{{ pagination.total }} Kunde(n) insgesamt</p>
         </div>
         <div class="head-actions">
             <a href="{{ path('admin_customer_new') }}" class="btn btn-primary">+ Neuer Kunde</a>
         </div>
     </div>
 
-    {% if customers is empty %}
-        <div class="empty">Noch keine Kunden angelegt. Lege deinen ersten Kunden an.</div>
+    <form method="get" action="{{ path('admin_customer_index') }}" class="list-toolbar">
+        <input type="search" name="q" value="{{ q }}" placeholder="Suche nach Name, Firma oder E-Mail …">
+        <select name="active">
+            <option value="">Alle</option>
+            <option value="active" {{ active == 'active' ? 'selected' }}>Nur aktive</option>
+            <option value="inactive" {{ active == 'inactive' ? 'selected' }}>Nur inaktive</option>
+        </select>
+        <button class="btn btn-ghost btn-sm">Filtern</button>
+        {% if q or active %}<a href="{{ path('admin_customer_index') }}" class="btn btn-ghost btn-sm">Zurücksetzen</a>{% endif %}
+    </form>
+
+    {% if pagination.items is empty %}
+        <div class="empty">Keine Kunden gefunden.</div>
     {% else %}
         <div class="table-wrap">
             <table class="data">
@@ -29,7 +40,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for customer in customers %}
+                    {% for customer in pagination.items %}
                         <tr>
                             <td>
                                 <a href="{{ path('admin_customer_show', {id: customer.id}) }}">
@@ -55,5 +66,7 @@
                 </tbody>
             </table>
         </div>
+
+        {{ include('_pagination.html.twig', {route: 'admin_customer_index', pagination: pagination, query: {q: q, active: active}}) }}
     {% endif %}
 {% endblock %}

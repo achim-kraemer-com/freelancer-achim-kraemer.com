@@ -321,6 +321,7 @@ h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing:
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
     gap: 1.25rem;
+    margin-bottom: 2rem;
 }
 .stat { padding: 1.5rem; }
 .stat .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
@@ -473,7 +474,8 @@ form label {
     color: var(--text-muted);
 }
 form input[type="text"], form input[type="email"], form input[type="number"],
-form input[type="date"], form input[type="url"], form textarea, form select {
+form input[type="date"], form input[type="url"], form input[type="search"],
+form textarea, form select {
     width: 100%;
     padding: 0.7rem 0.9rem;
     color: var(--text);
@@ -483,6 +485,8 @@ form input[type="date"], form input[type="url"], form textarea, form select {
     font: inherit;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+form input[type="search"] { -webkit-appearance: none; appearance: none; }
+form input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 form textarea { resize: vertical; }
 form input:focus, form textarea:focus, form select:focus {
     outline: none;
@@ -518,3 +522,89 @@ ul.form-errors, .form-error { color: var(--danger-text); font-size: 0.82rem; lis
 @media (max-width: 640px) {
     .form-grid { grid-template-columns: 1fr; }
 }
+
+/* Zeiterfassung / Stopwatch */
+.stopwatch-card { text-align: center; padding: 2.5rem 1.5rem; }
+.stopwatch {
+    font-size: clamp(2.75rem, 9vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+}
+.stopwatch.is-running {
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: stopwatch-pulse 1.4s ease-in-out infinite;
+}
+@keyframes stopwatch-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+}
+.stopwatch-state { margin: 1rem 0 1.5rem; }
+.stopwatch-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+
+/* Dashboard widgets */
+.stat.card { display: block; text-decoration: none; }
+a.stat.card { transition: border-color 0.2s ease, transform 0.2s ease; }
+a.stat.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.stat .hint { margin-top: 0.4rem; font-size: 0.85rem; color: var(--text-muted); }
+.dash-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1.5rem 2rem;
+    align-items: start;
+}
+.dash-columns .section { margin-top: 2.5rem; }
+
+/* Task work-status badges */
+.status-offen      { color: #93c5fd; background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.3); }
+.status-in-arbeit  { color: #fcd34d; background: rgba(251,191,36,0.14); border: 1px solid rgba(251,191,36,0.3); }
+.status-erledigt   { color: #6ee7b7; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.3); }
+
+/* Compact inline status select in task tables */
+select.status-select {
+    width: auto;
+    padding: 0.3rem 1.6rem 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Overdue invoices */
+.overdue-text { color: #fb7185 !important; font-weight: 600; }
+.status-overdue {
+    color: #fb7185;
+    background: rgba(244,63,94,0.14);
+    border: 1px solid rgba(244,63,94,0.35);
+    margin-left: 0.35rem;
+}
+
+/* Revenue chart on dashboard */
+.revenue-totals { display: flex; gap: 1.5rem; flex-wrap: wrap; color: var(--text-muted); font-size: 0.9rem; }
+.revenue-totals strong { color: #fff; }
+.revenue-chart { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.revenue-row { display: grid; grid-template-columns: 2.5rem 1fr 6rem; align-items: center; gap: 0.75rem; }
+.revenue-row .revenue-month { font-size: 0.8rem; color: var(--text-dim); }
+.revenue-row.is-current .revenue-month { color: var(--accent); font-weight: 700; }
+.revenue-bar-track { background: rgba(255,255,255,0.05); border-radius: 999px; height: 0.7rem; overflow: hidden; }
+.revenue-bar {
+    display: block; height: 100%;
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+    border-radius: 999px; min-width: 2px;
+}
+.revenue-row.is-current .revenue-bar { background: linear-gradient(120deg, var(--accent-strong), var(--accent)); }
+.revenue-value { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--text-muted); }
+
+/* List toolbar (search + filter) */
+.list-toolbar { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+.list-toolbar input[type="search"] { width: auto; flex: 1 1 18rem; }
+.list-toolbar select { width: auto; }
+
+/* Pagination */
+.pagination { display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1.5rem; }
+.pagination-info { color: var(--text-dim); font-size: 0.85rem; }
+.btn.is-disabled { opacity: 0.4; pointer-events: none; }

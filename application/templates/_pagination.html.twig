@@ -1,0 +1,18 @@
+{# Expects: route (string), pagination (array from PaginationTrait), query (hash of params to preserve) #}
+{% if pagination.pages > 1 %}
+    <nav class="pagination">
+        {% if pagination.page > 1 %}
+            <a class="btn btn-ghost btn-sm" href="{{ path(route, query|merge({page: pagination.page - 1})) }}">‹ Zurück</a>
+        {% else %}
+            <span class="btn btn-ghost btn-sm is-disabled">‹ Zurück</span>
+        {% endif %}
+
+        <span class="pagination-info">Seite {{ pagination.page }} von {{ pagination.pages }} · {{ pagination.total }} Einträge</span>
+
+        {% if pagination.page < pagination.pages %}
+            <a class="btn btn-ghost btn-sm" href="{{ path(route, query|merge({page: pagination.page + 1})) }}">Weiter ›</a>
+        {% else %}
+            <span class="btn btn-ghost btn-sm is-disabled">Weiter ›</span>
+        {% endif %}
+    </nav>
+{% endif %}

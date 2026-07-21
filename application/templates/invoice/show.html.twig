@@ -8,10 +8,20 @@
     <div class="page-head">
         <div>
             <h1>Rechnung {{ invoice.number }}</h1>
-            <p class="sub"><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></p>
+            <p class="sub">
+                <span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span>
+                {% if invoice.overdue %}<span class="status status-overdue">Überfällig</span>{% endif %}
+            </p>
         </div>
         <div class="head-actions">
-            <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-primary">PDF herunterladen</a>
+            <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-ghost">PDF herunterladen</a>
+            {% if invoice.customer.email %}
+                <form method="post" action="{{ path('admin_invoice_send', {id: invoice.id}) }}" class="inline-form"
+                      onsubmit="return confirm('Rechnung per E-Mail an {{ invoice.customer.email }} senden?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('send' ~ invoice.id) }}">
+                    <button class="btn btn-primary">Per E-Mail senden</button>
+                </form>
+            {% endif %}
         </div>
     </div>
 
@@ -22,6 +32,29 @@
                 <dt>Nummer</dt><dd>{{ invoice.number }}</dd>
                 <dt>Datum</dt><dd>{{ invoice.invoiceDate|date('d.m.Y') }}</dd>
                 <dt>Betrag</dt><dd>{{ invoice.totalAmount|number_format(2, ',', '.') }} €</dd>
+                <dt>Fällig</dt>
+                <dd>
+                    {% if invoice.dueDate %}
+                        <span class="{{ invoice.overdue ? 'overdue-text' }}">{{ invoice.dueDate|date('d.m.Y') }}</span>
+                        {% if invoice.overdue %}
+                            <span class="muted">({{ (invoice.daysUntilDue * -1) }} Tage überfällig)</span>
+                        {% elseif invoice.status != 'bezahlt' and invoice.daysUntilDue is not null %}
+                            <span class="muted">(in {{ invoice.daysUntilDue }} Tagen)</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="muted">—</span>
+                    {% endif %}
+                </dd>
+                {% if invoice.paidAt %}<dt>Bezahlt am</dt><dd>{{ invoice.paidAt|date('d.m.Y') }}</dd>{% endif %}
+                <dt>Verschickt</dt>
+                <dd>
+                    {% if invoice.lastSentAt %}
+                        {{ invoice.lastSentAt|date('d.m.Y H:i') }} Uhr
+                        {% if invoice.dispatches|length > 1 %}<span class="muted">({{ invoice.dispatches|length }}×)</span>{% endif %}
+                    {% else %}
+                        <span class="muted">noch nicht per E-Mail versendet</span>
+                    {% endif %}
+                </dd>
             </dl>
         </div>
         <div class="card detail-card">
@@ -32,6 +65,27 @@
             </dl>
         </div>
     </div>
+
+    {% if invoice.dispatches is not empty %}
+        <div class="section">
+            <div class="section-head"><h2>E-Mail-Versand</h2></div>
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr><th>Gesendet am</th><th>Empfänger</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for dispatch in invoice.dispatches %}
+                            <tr>
+                                <td>{{ dispatch.sentAt|date('d.m.Y H:i') }} Uhr</td>
+                                <td class="muted">{{ dispatch.recipient }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
 
     <div class="section">
         <div class="section-head"><h2>Positionen</h2></div>
@@ -72,6 +126,15 @@
                 </form>
             {% endfor %}
         </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>Fälligkeit</h2></div>
+        <form method="post" action="{{ path('admin_invoice_due_date', {id: invoice.id}) }}" class="head-actions" style="align-items:flex-end; gap:0.75rem;">
+            <input type="hidden" name="_token" value="{{ csrf_token('due-date' ~ invoice.id) }}">
+            <input type="date" name="due_date" value="{{ invoice.dueDate ? invoice.dueDate|date('Y-m-d') }}" style="width:auto;">
+            <button class="btn btn-ghost btn-sm">Fälligkeit speichern</button>
+        </form>
     </div>
 
     <form method="post" action="{{ path('admin_invoice_delete', {id: invoice.id}) }}"

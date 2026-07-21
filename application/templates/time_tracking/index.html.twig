@@ -1,0 +1,178 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Zeiterfassung · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    {% set elapsed = user.elapsedSeconds %}
+    {% set hh = (elapsed // 3600) %}
+    {% set mm = ((elapsed % 3600) // 60) %}
+    {% set ss = (elapsed % 60) %}
+
+    <div class="page-head">
+        <div>
+            <h1>Zeiterfassung</h1>
+            <p class="sub">Timer starten, stoppen und die gemessene Zeit einer Aufgabe zuweisen.</p>
+        </div>
+    </div>
+
+    <div class="card stopwatch-card">
+        <div class="stopwatch{{ user.timerRunning ? ' is-running' : '' }}"
+             data-stopwatch
+             data-seconds="{{ elapsed }}"
+             data-running="{{ user.timerRunning ? '1' : '0' }}">{{ '%02d:%02d:%02d'|format(hh, mm, ss) }}</div>
+
+        <div class="stopwatch-state">
+            {% if user.timerRunning %}
+                <span class="status status-bezahlt">läuft</span>
+            {% elseif elapsed > 0 %}
+                <span class="status status-verschickt">pausiert</span>
+            {% else %}
+                <span class="status status-erstellt">bereit</span>
+            {% endif %}
+        </div>
+
+        <div class="stopwatch-actions">
+            {% if user.timerRunning %}
+                <form method="post" action="{{ path('admin_time_tracking_stop') }}" class="inline-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('time-tracking') }}">
+                    <button type="submit" class="btn btn-primary">■ Stopp</button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ path('admin_time_tracking_start') }}" class="inline-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('time-tracking') }}">
+                    <button type="submit" class="btn btn-primary">▶ {{ elapsed > 0 ? 'Weiter' : 'Start' }}</button>
+                </form>
+            {% endif %}
+
+            {% if elapsed > 0 or user.timerRunning %}
+                <form method="post" action="{{ path('admin_time_tracking_reset') }}" class="inline-form"
+                      onsubmit="return confirm('Gemessene Zeit verwerfen?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('time-tracking') }}">
+                    <button type="submit" class="btn btn-ghost">Zurücksetzen</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head">
+            <h2>Aufgabe beenden</h2>
+        </div>
+
+        {% if tasks is empty %}
+            <div class="empty">Keine offenen Aufgaben vorhanden. Lege zuerst eine Aufgabe in einem Projekt an.</div>
+        {% else %}
+            <form method="post" action="{{ path('admin_time_tracking_finish') }}" class="card form-card">
+                <input type="hidden" name="_token" value="{{ csrf_token('time-tracking') }}">
+
+                <div class="form-row">
+                    <label for="task-select">Aufgabe</label>
+                    <select id="task-select" name="task" data-task-select required>
+                        <option value="" data-hours="0">– Aufgabe wählen –</option>
+                        {% set current_project = null %}
+                        {% for task in tasks %}
+                            {% if current_project != task.project.id %}
+                                {% if current_project is not null %}</optgroup>{% endif %}
+                                {% set current_project = task.project.id %}
+                                <optgroup label="{{ task.project.customer }} – {{ task.project.name }}">
+                            {% endif %}
+                            {% set _min = ((task.hours ?? 0) * 60)|round %}
+                            <option value="{{ task.id }}" data-hours="{{ task.hours ?? 0 }}">
+                                {{ task.name }} (aktuell {{ (_min // 60) }} Std. {{ '%02d'|format(_min % 60) }} Min.)
+                            </option>
+                            {% if loop.last %}</optgroup>{% endif %}
+                        {% endfor %}
+                    </select>
+                    <span class="form-help" data-task-current>Bisher erfasste Zeit erscheint hier nach der Auswahl.</span>
+                </div>
+
+                <div class="form-row">
+                    <label for="note-field">Notiz (optional)</label>
+                    <textarea id="note-field" name="note" rows="2" placeholder="Woran wurde gearbeitet?"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Aufgabe beenden &amp; Zeit zuweisen</button>
+                    <span class="form-help">Die gemessene Zeit wird auf volle Minuten aufgerundet und zur Aufgabe addiert.</span>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>Letzte Zeiteinträge</h2></div>
+        {% if recentEntries is empty %}
+            <div class="empty">Noch keine Zeiteinträge erfasst.</div>
+        {% else %}
+            <div class="table-wrap">
+                <table class="data">
+                    <thead>
+                        <tr><th>Datum</th><th>Aufgabe</th><th>Kunde / Projekt</th><th class="num">Dauer</th><th>Notiz</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recentEntries %}
+                            <tr>
+                                <td class="muted">{{ entry.workDate|date('d.m.Y') }}</td>
+                                <td>{{ entry.task.name }}</td>
+                                <td class="muted">{{ entry.task.project.customer }} · {{ entry.task.project.name }}</td>
+                                <td class="num">{{ (entry.minutes // 60) }} Std. {{ '%02d'|format(entry.minutes % 60) }} Min.</td>
+                                <td class="muted">{{ entry.note ?: '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        (function () {
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            var format = function (total) {
+                total = Math.max(0, total);
+                return [Math.floor(total / 3600), Math.floor((total % 3600) / 60), total % 60].map(pad).join(':');
+            };
+
+            var el = document.querySelector('[data-stopwatch]');
+            if (el) {
+                var base = parseInt(el.dataset.seconds, 10) || 0;
+                if (el.dataset.running === '1') {
+                    // Derive the display from real wall-clock time since page load instead of
+                    // counting up. Background tabs throttle setInterval, so a counter would drift;
+                    // recomputing from the clock self-corrects on every tick and on tab focus.
+                    var startedAt = Date.now();
+                    var tick = function () {
+                        el.textContent = format(base + Math.floor((Date.now() - startedAt) / 1000));
+                    };
+                    tick();
+                    setInterval(tick, 1000);
+                    document.addEventListener('visibilitychange', function () {
+                        if (!document.hidden) { tick(); }
+                    });
+                    window.addEventListener('focus', tick);
+                } else {
+                    el.textContent = format(base);
+                }
+            }
+
+            var select = document.querySelector('[data-task-select]');
+            var info = document.querySelector('[data-task-current]');
+            if (select && info) {
+                var update = function () {
+                    var opt = select.options[select.selectedIndex];
+                    var hours = parseFloat((opt && opt.dataset.hours) || '0') || 0;
+                    if (!select.value) {
+                        info.textContent = 'Bisher erfasste Zeit erscheint hier nach der Auswahl.';
+                        return;
+                    }
+                    var totalMinutes = Math.round(hours * 60);
+                    var hh = Math.floor(totalMinutes / 60);
+                    var mm = totalMinutes % 60;
+                    info.textContent = 'Bisher erfasst: ' + hh + ' Std. ' + pad(mm) + ' Min.';
+                };
+                select.addEventListener('change', update);
+                update();
+            }
+        })();
+    </script>
+{% endblock %}

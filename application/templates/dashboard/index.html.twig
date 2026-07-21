@@ -3,41 +3,176 @@
 {% block title %}Dashboard · Achim Krämer{% endblock %}
 
 {% block body %}
-    <nav class="site-nav">
-        <a href="{{ path('app_home') }}" class="brand">
-            <span class="dot"></span> Achim Krämer
-        </a>
-        <div class="nav-actions">
-            <span class="badge">{{ 'ROLE_ADMIN' in app.user.roles ? 'Admin' : 'User' }}</span>
-            <a href="{{ path('app_logout') }}" class="btn btn-ghost">Logout</a>
-        </div>
-    </nav>
+    {{ include('_admin_nav.html.twig') }}
 
     <main class="dashboard">
         <div class="welcome animate-in">
             <h1>Hallo, <span class="gradient-text">{{ app.user.userIdentifier }}</span> 👋</h1>
-            <p>Willkommen im geschützten Bereich. Nur angemeldete Nutzer sehen diese Seite.</p>
-        </div>
-
-        <div class="stat-grid">
-            <div class="card stat animate-in delay-1">
-                <div class="label">Status</div>
-                <div class="value accent">Aktiv</div>
-            </div>
-            <div class="card stat animate-in delay-2">
-                <div class="label">Rollen</div>
-                <div class="value">{{ app.user.roles|length }}</div>
-            </div>
-            <div class="card stat animate-in delay-3">
-                <div class="label">Session</div>
-                <div class="value">🔒</div>
-            </div>
+            <p>Willkommen im Freelancer-CRM. Hier die wichtigsten Zahlen auf einen Blick.</p>
         </div>
 
         {% if is_granted('ROLE_ADMIN') %}
-            <div class="hero-actions" style="justify-content:flex-start; margin-top:2.5rem;">
+            <div class="stat-grid">
+                <a href="{{ path('admin_invoice_index') }}" class="card stat animate-in delay-1">
+                    <div class="label">Offene Rechnungen</div>
+                    <div class="value accent">{{ openInvoices|length }}</div>
+                    <div class="hint">{{ openInvoiceTotal|number_format(2, ',', '.') }} € ausstehend</div>
+                </a>
+                <a href="{{ path('admin_invoice_index') }}" class="card stat animate-in delay-1">
+                    <div class="label">Überfällig</div>
+                    <div class="value {{ overdueInvoices|length > 0 ? 'overdue-text' }}">{{ overdueInvoices|length }}</div>
+                    <div class="hint">{{ overdueTotal|number_format(2, ',', '.') }} € überfällig</div>
+                </a>
+                <a href="{{ path('admin_time_tracking_index') }}" class="card stat animate-in delay-2">
+                    <div class="label">Offene Aufträge</div>
+                    <div class="value">{{ openTasks|length }}</div>
+                    <div class="hint">{{ openTaskTotal|number_format(2, ',', '.') }} € nicht abgerechnet</div>
+                </a>
+                <a href="{{ path('admin_customer_index') }}" class="card stat animate-in delay-3">
+                    <div class="label">Aktive Kunden</div>
+                    <div class="value">{{ activeCustomers }}</div>
+                    <div class="hint">Kunden verwalten →</div>
+                </a>
+            </div>
+
+            <div class="hero-actions" style="justify-content:flex-start; margin-top:1.75rem;">
                 <a href="{{ path('admin_customer_index') }}" class="btn btn-primary">Kunden verwalten →</a>
+                <a href="{{ path('admin_time_tracking_index') }}" class="btn btn-ghost">Zeiterfassung</a>
                 <a href="{{ path('admin_invoice_index') }}" class="btn btn-ghost">Rechnungen</a>
+            </div>
+
+            {% set monthNames = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'] %}
+            {% set maxRev = max(monthlyRevenue) %}
+            <div class="section">
+                <div class="section-head">
+                    <h2>Umsatz {{ year }}</h2>
+                    <div class="revenue-totals">
+                        <span><strong>{{ revenueYear|number_format(2, ',', '.') }} €</strong> Jahr</span>
+                        <span><strong>{{ revenueMonth|number_format(2, ',', '.') }} €</strong> {{ monthNames[currentMonth - 1] }}</span>
+                    </div>
+                </div>
+                <div class="card revenue-chart">
+                    {% for m in 1..12 %}
+                        <div class="revenue-row {{ m == currentMonth ? 'is-current' }}">
+                            <span class="revenue-month">{{ monthNames[m - 1] }}</span>
+                            <span class="revenue-bar-track">
+                                <span class="revenue-bar" style="width: {{ maxRev > 0 ? (monthlyRevenue[m] / maxRev * 100)|round(1) : 0 }}%;"></span>
+                            </span>
+                            <span class="revenue-value">{{ monthlyRevenue[m] > 0 ? (monthlyRevenue[m]|number_format(0, ',', '.') ~ ' €') : '—' }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if overdueInvoices is not empty %}
+                <div class="section">
+                    <div class="section-head"><h2 class="overdue-text">⚠ Überfällige Rechnungen</h2></div>
+                    <div class="table-wrap">
+                        <table class="data">
+                            <thead>
+                                <tr><th>Nr.</th><th>Kunde</th><th>Fällig</th><th class="num">Betrag (€)</th><th class="num">Überfällig</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in overdueInvoices|slice(0, 8) %}
+                                    <tr>
+                                        <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                                        <td class="muted">{{ invoice.customer }}</td>
+                                        <td class="overdue-text">{{ invoice.dueDate|date('d.m.Y') }}</td>
+                                        <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                                        <td class="num overdue-text">{{ invoice.daysUntilDue * -1 }} Tage</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="dash-columns">
+                <div class="section">
+                    <div class="section-head">
+                        <h2>Offene Rechnungen</h2>
+                        <a href="{{ path('admin_invoice_index') }}" class="btn btn-ghost btn-sm">Alle</a>
+                    </div>
+                    {% if openInvoices is empty %}
+                        <div class="empty">Keine offenen Rechnungen. 🎉</div>
+                    {% else %}
+                        <div class="table-wrap">
+                            <table class="data">
+                                <thead>
+                                    <tr><th>Nr.</th><th>Kunde</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for invoice in openInvoices|slice(0, 6) %}
+                                        <tr>
+                                            <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                                            <td class="muted">{{ invoice.customer }}</td>
+                                            <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                                            <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                                            <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <div class="section-head">
+                        <h2>Letzte aktive Kunden</h2>
+                        <a href="{{ path('admin_customer_index') }}" class="btn btn-ghost btn-sm">Alle</a>
+                    </div>
+                    {% if recentCustomers is empty %}
+                        <div class="empty">Noch keine aktiven Kunden.</div>
+                    {% else %}
+                        <div class="table-wrap">
+                            <table class="data">
+                                <thead>
+                                    <tr><th>Kunde</th><th>Ort</th><th class="num">Projekte</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in recentCustomers %}
+                                        <tr>
+                                            <td><a href="{{ path('admin_customer_show', {id: customer.id}) }}">{{ customer }}</a></td>
+                                            <td class="muted">{{ customer.city ?: '—' }}</td>
+                                            <td class="num">{{ projectCounts[customer.id] ?? 0 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-head">
+                    <h2>Offene Aufträge</h2>
+                    <a href="{{ path('admin_time_tracking_index') }}" class="btn btn-ghost btn-sm">Zeiterfassung</a>
+                </div>
+                {% if openTasks is empty %}
+                    <div class="empty">Keine offenen Aufgaben.</div>
+                {% else %}
+                    <div class="table-wrap">
+                        <table class="data">
+                            <thead>
+                                <tr><th>Aufgabe</th><th>Kunde / Projekt</th><th>Status</th><th class="num">Stunden</th><th class="num">Kosten (€)</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for task in openTasks|slice(0, 8) %}
+                                    <tr>
+                                        <td><a href="{{ path('admin_project_show', {id: task.project.id}) }}">{{ task.name }}</a></td>
+                                        <td class="muted">{{ task.project.customer }} · {{ task.project.name }}</td>
+                                        <td><span class="status status-{{ task.statusSlug }}">{{ task.status|capitalize }}</span></td>
+                                        <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                                        <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
     </main>

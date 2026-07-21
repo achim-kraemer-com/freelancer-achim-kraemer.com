@@ -1,0 +1,15 @@
+<nav class="admin-nav">
+    <a href="{{ path('app_dashboard') }}" class="brand"><span class="dot"></span> Freelancer-CRM</a>
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="links">
+            <a href="{{ path('admin_customer_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_customer' or app.request.attributes.get('_route') starts with 'admin_project' or app.request.attributes.get('_route') starts with 'admin_task' ? 'active' }}">Kunden</a>
+            <a href="{{ path('admin_invoice_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_invoice' ? 'active' }}">Rechnungen</a>
+            <a href="{{ path('admin_time_tracking_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_time_tracking' ? 'active' }}">Zeiterfassung</a>
+        </div>
+    {% endif %}
+    <span class="spacer"></span>
+    <div class="links">
+        <a href="{{ path('app_home') }}">Website</a>
+        <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+    </div>
+</nav>

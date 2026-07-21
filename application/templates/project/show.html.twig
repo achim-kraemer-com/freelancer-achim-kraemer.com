@@ -46,6 +46,7 @@
                                 <th class="num">Stunden</th>
                                 <th class="num">Kosten (€)</th>
                                 <th>Status</th>
+                                <th>Abrechnung</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -63,6 +64,21 @@
                                     </td>
                                     <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
                                     <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                                    <td>
+                                        {% if task.invoiced %}
+                                            <span class="status status-{{ task.statusSlug }}">{{ task.status|capitalize }}</span>
+                                        {% else %}
+                                            <select class="status-select status-{{ task.statusSlug }}"
+                                                    data-task-status
+                                                    data-url="{{ path('admin_task_status', {id: task.id}) }}"
+                                                    data-token="{{ csrf_token('status' ~ task.id) }}"
+                                                    aria-label="Status der Aufgabe {{ task.name }}">
+                                                {% for label, value in constant('App\\Entity\\Task::STATUS_CHOICES') %}
+                                                    <option value="{{ value }}" {{ task.status == value ? 'selected' }}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if task.invoiced %}
                                             <span class="status status-verschickt">Abgerechnet</span>
@@ -92,4 +108,22 @@
             </form>
         {% endif %}
     </div>
+
+    <script>
+        // Inline task status change: the selects live inside the invoice form, so
+        // they carry no name and post separately via fetch instead of submitting it.
+        document.querySelectorAll('[data-task-status]').forEach(function (select) {
+            select.addEventListener('change', function () {
+                var body = new URLSearchParams();
+                body.set('_token', select.dataset.token);
+                body.set('status', select.value);
+                fetch(select.dataset.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString(),
+                    redirect: 'manual',
+                }).then(function () { window.location.reload(); });
+            });
+        });
+    </script>
 {% endblock %}

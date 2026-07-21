@@ -4,26 +4,43 @@
 
 {% block admin_body %}
     <div class="page-head">
-        <div><h1>Rechnungen</h1><p class="sub">{{ invoices|length }} Rechnung(en)</p></div>
+        <div><h1>Rechnungen</h1><p class="sub">{{ pagination.total }} Rechnung(en)</p></div>
     </div>
 
-    {% if invoices is empty %}
-        <div class="empty">Noch keine Rechnungen. Erstelle eine Rechnung aus den Aufgaben eines Projekts.</div>
+    <form method="get" action="{{ path('admin_invoice_index') }}" class="list-toolbar">
+        <input type="search" name="q" value="{{ q }}" placeholder="Suche nach Nummer oder Kunde …">
+        <select name="status">
+            <option value="">Alle Status</option>
+            <option value="erstellt" {{ status == 'erstellt' ? 'selected' }}>Erstellt</option>
+            <option value="verschickt" {{ status == 'verschickt' ? 'selected' }}>Verschickt</option>
+            <option value="bezahlt" {{ status == 'bezahlt' ? 'selected' }}>Bezahlt</option>
+            <option value="ueberfaellig" {{ status == 'ueberfaellig' ? 'selected' }}>Überfällig</option>
+        </select>
+        <button class="btn btn-ghost btn-sm">Filtern</button>
+        {% if q or status %}<a href="{{ path('admin_invoice_index') }}" class="btn btn-ghost btn-sm">Zurücksetzen</a>{% endif %}
+    </form>
+
+    {% if pagination.items is empty %}
+        <div class="empty">Keine Rechnungen gefunden.</div>
     {% else %}
         <div class="table-wrap">
             <table class="data">
                 <thead>
-                    <tr><th>Nummer</th><th>Kunde</th><th>Projekt</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
+                    <tr><th>Nummer</th><th>Kunde</th><th>Projekt</th><th>Datum</th><th>Fällig</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody>
-                    {% for invoice in invoices %}
+                    {% for invoice in pagination.items %}
                         <tr>
                             <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
                             <td class="muted">{{ invoice.customer }}</td>
                             <td class="muted">{{ invoice.project ? invoice.project.name : '—' }}</td>
                             <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                            <td class="{{ invoice.overdue ? 'overdue-text' : 'muted' }}">{{ invoice.dueDate ? invoice.dueDate|date('d.m.Y') : '—' }}</td>
                             <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
-                            <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                            <td>
+                                <span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span>
+                                {% if invoice.overdue %}<span class="status status-overdue">Überfällig</span>{% endif %}
+                            </td>
                             <td class="num">
                                 <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-ghost btn-sm">PDF</a>
                             </td>
@@ -32,5 +49,7 @@
                 </tbody>
             </table>
         </div>
+
+        {{ include('_pagination.html.twig', {route: 'admin_invoice_index', pagination: pagination, query: {q: q, status: status}}) }}
     {% endif %}
 {% endblock %}

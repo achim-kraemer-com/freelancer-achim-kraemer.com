@@ -7,7 +7,14 @@
 
     <div class="page-head">
         <div>
-            <h1>{{ customer.companyName ?: (customer.firstname ~ ' ' ~ customer.lastname) }}</h1>
+            <h1>
+                {{ customer.companyName ?: (customer.firstname ~ ' ' ~ customer.lastname) }}
+                {% if customer.active %}
+                    <span class="status status-bezahlt">Aktiv</span>
+                {% else %}
+                    <span class="status status-verschickt">Inaktiv</span>
+                {% endif %}
+            </h1>
             {% if customer.companyName %}<p class="sub">{{ customer.firstname }} {{ customer.lastname }}</p>{% endif %}
         </div>
         <div class="head-actions">
@@ -16,14 +23,37 @@
         </div>
     </div>
 
+    <div class="stat-grid">
+        <div class="card stat">
+            <div class="label">Umsatz (bezahlt)</div>
+            <div class="value">{{ paidTotal|number_format(2, ',', '.') }} €</div>
+        </div>
+        <div class="card stat">
+            <div class="label">Offen</div>
+            <div class="value accent">{{ openTotal|number_format(2, ',', '.') }} €</div>
+        </div>
+        <div class="card stat">
+            <div class="label">Überfällig</div>
+            <div class="value {{ overdueTotal > 0 ? 'overdue-text' }}">{{ overdueTotal|number_format(2, ',', '.') }} €</div>
+        </div>
+        <div class="card stat">
+            <div class="label">Projekte</div>
+            <div class="value">{{ customer.projects|length }}</div>
+            <div class="hint">{{ openTasks }} offene Aufgabe(n)</div>
+        </div>
+    </div>
+
     <div class="detail-grid">
         <div class="card detail-card">
             <h3>Kontakt</h3>
             <dl>
-                <dt>E-Mail</dt><dd>{{ customer.email }}</dd>
+                <dt>E-Mail</dt><dd><a href="mailto:{{ customer.email }}">{{ customer.email }}</a></dd>
                 {% if customer.phone %}<dt>Telefon</dt><dd>{{ customer.phone }}</dd>{% endif %}
                 {% if customer.mobile %}<dt>Mobil</dt><dd>{{ customer.mobile }}</dd>{% endif %}
-                {% if customer.website %}<dt>Website</dt><dd>{{ customer.website }}</dd>{% endif %}
+                {% if customer.website %}
+                    <dt>Website</dt>
+                    <dd><a href="{{ customer.website starts with 'http' ? customer.website : 'https://' ~ customer.website }}" target="_blank" rel="noopener">{{ customer.website }}</a></dd>
+                {% endif %}
             </dl>
         </div>
         <div class="card detail-card">
@@ -65,21 +95,25 @@
         {% endif %}
     </div>
 
-    {% if customer.invoices is not empty %}
+    {% if invoices is not empty %}
         <div class="section">
             <div class="section-head"><h2>Rechnungen</h2></div>
             <div class="table-wrap">
                 <table class="data">
                     <thead>
-                        <tr><th>Nummer</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
+                        <tr><th>Nummer</th><th>Datum</th><th>Fällig</th><th class="num">Betrag (€)</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
-                        {% for invoice in customer.invoices %}
+                        {% for invoice in invoices %}
                             <tr>
                                 <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
                                 <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                                <td class="{{ invoice.overdue ? 'overdue-text' : 'muted' }}">{{ invoice.dueDate ? invoice.dueDate|date('d.m.Y') : '—' }}</td>
                                 <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
-                                <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                                <td>
+                                    <span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span>
+                                    {% if invoice.overdue %}<span class="status status-overdue">Überfällig</span>{% endif %}
+                                </td>
                                 <td class="num"><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}" class="btn btn-ghost btn-sm">Öffnen</a></td>
                             </tr>
                         {% endfor %}

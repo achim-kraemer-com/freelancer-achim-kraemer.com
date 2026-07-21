@@ -1,18 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <nav class="admin-nav">
-        <a href="{{ path('app_dashboard') }}" class="brand"><span class="dot"></span> Freelancer-CRM</a>
-        <div class="links">
-            <a href="{{ path('admin_customer_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_customer' or app.request.attributes.get('_route') starts with 'admin_project' or app.request.attributes.get('_route') starts with 'admin_task' ? 'active' }}">Kunden</a>
-            <a href="{{ path('admin_invoice_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_invoice' ? 'active' }}">Rechnungen</a>
-        </div>
-        <span class="spacer"></span>
-        <div class="links">
-            <a href="{{ path('app_home') }}">Website</a>
-            <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Logout</a>
-        </div>
-    </nav>
+    {{ include('_admin_nav.html.twig') }}
 
     <main class="admin-main">
         {% block flashes %}
