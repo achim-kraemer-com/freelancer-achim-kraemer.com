@@ -65,6 +65,22 @@ class TaskController extends AbstractController
         ]);
     }
 
+    #[Route('/task/{id}/status', name: 'status', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function status(Task $task, Request $request, EntityManagerInterface $em): Response
+    {
+        $status = (string) $request->request->get('status');
+
+        if ($this->isCsrfTokenValid('status'.$task->getId(), (string) $request->request->get('_token'))
+            && \in_array($status, Task::STATUS_CHOICES, true)
+        ) {
+            $task->setStatus($status);
+            $em->flush();
+            $this->addFlash('success', 'Status auf "'.$status.'" gesetzt.');
+        }
+
+        return $this->redirectToRoute('admin_project_show', ['id' => $task->getProject()->getId()]);
+    }
+
     #[Route('/task/{id}/delete', name: 'delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Task $task, Request $request, EntityManagerInterface $em): Response
     {

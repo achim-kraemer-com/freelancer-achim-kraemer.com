@@ -114,6 +114,7 @@ class ProjectController extends AbstractController
         $invoice->setCustomer($customer);
         $invoice->setProject($project);
         $invoice->setInvoiceDate($invoiceDate);
+        $invoice->setDueDate((clone $invoiceDate)->modify('+'.Invoice::DEFAULT_PAYMENT_TERM_DAYS.' days'));
         $invoice->setStatus(Invoice::STATUS_CREATED);
 
         $total = 0.0;

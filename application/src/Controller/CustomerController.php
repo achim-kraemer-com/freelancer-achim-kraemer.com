@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Entity\Invoice;
 use App\Form\CustomerType;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,10 +20,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CustomerController extends AbstractController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(CustomerRepository $customers): Response
+    public function index(Request $request, CustomerRepository $customers): Response
     {
+        $q      = trim((string) $request->query->get('q'));
+        $active = (string) $request->query->get('active');
+        $page   = (int) $request->query->get('page', 1);
+
         return $this->render('customer/index.html.twig', [
-            'customers' => $customers->findBy([], ['companyName' => 'ASC', 'lastname' => 'ASC']),
+            'pagination' => $customers->paginate($q ?: null, $active ?: null, $page),
+            'q'          => $q,
+            'active'     => $active,
         ]);
     }
 
@@ -47,7 +54,40 @@ class CustomerController extends AbstractController
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Customer $customer): Response
     {
-        return $this->render('customer/show.html.twig', ['customer' => $customer]);
+        $paidTotal = $openTotal = $overdueTotal = 0.0;
+        foreach ($customer->getInvoices() as $invoice) {
+            $amount = (float) $invoice->getTotalAmount();
+            if ($invoice->getStatus() === Invoice::STATUS_PAID) {
+                $paidTotal += $amount;
+            } else {
+                $openTotal += $amount;
+                if ($invoice->isOverdue()) {
+                    $overdueTotal += $amount;
+                }
+            }
+        }
+
+        $openTasks = 0;
+        foreach ($customer->getProjects() as $project) {
+            foreach ($project->getTasks() as $task) {
+                if (!$task->isInvoiced()) {
+                    ++$openTasks;
+                }
+            }
+        }
+
+        // Invoices newest first for the listing.
+        $invoices = $customer->getInvoices()->toArray();
+        usort($invoices, static fn (Invoice $a, Invoice $b): int => $b->getInvoiceDate() <=> $a->getInvoiceDate());
+
+        return $this->render('customer/show.html.twig', [
+            'customer'     => $customer,
+            'paidTotal'    => $paidTotal,
+            'openTotal'    => $openTotal,
+            'overdueTotal' => $overdueTotal,
+            'openTasks'    => $openTasks,
+            'invoices'     => $invoices,
+        ]);
     }
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
