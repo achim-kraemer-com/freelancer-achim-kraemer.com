@@ -30,11 +30,18 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 week
                 path: /
+            two_factor:
+                auth_form_path: 2fa_login
+                check_path: 2fa_login_check
 
     # Note: Only the *first* matching rule is applied
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
+        # Users in the middle of the 2FA challenge may reach the 2FA + logout routes.
+        - { path: ^/2fa, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: ^/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/dashboard, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
 

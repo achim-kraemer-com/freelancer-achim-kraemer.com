@@ -1,0 +1,59 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Benutzer · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div><h1>Benutzer</h1><p class="sub">{{ users|length }} Benutzer</p></div>
+        <div class="head-actions">
+            <a href="{{ path('admin_user_new') }}" class="btn btn-primary">+ Neuer Benutzer</a>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr><th>E-Mail</th><th>Rolle</th><th>2FA</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    {% set is_admin = 'ROLE_ADMIN' in user.roles %}
+                    {% set is_self = user.id == app.user.id %}
+                    <tr>
+                        <td>{{ user.email }}{% if is_self %} <span class="muted">(du)</span>{% endif %}</td>
+                        <td>
+                            <span class="status {{ is_admin ? 'status-erstellt' : 'status-bezahlt' }}">
+                                {{ is_admin ? 'Administrator' : 'Benutzer' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.totpEnabled %}
+                                <span class="status status-bezahlt">Aktiv</span>
+                            {% else %}
+                                <span class="status status-verschickt">Inaktiv</span>
+                            {% endif %}
+                        </td>
+                        <td class="num">
+                            {% if not is_self %}
+                                <div class="row-actions">
+                                    <form method="post" action="{{ path('admin_user_role', {id: user.id}) }}" class="inline-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('role' ~ user.id) }}">
+                                        <input type="hidden" name="role" value="{{ is_admin ? 'ROLE_USER' : 'ROLE_ADMIN' }}">
+                                        <button class="btn btn-ghost btn-sm">{{ is_admin ? 'Zu Benutzer' : 'Zu Admin' }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" class="inline-form"
+                                          onsubmit="return confirm('Benutzer {{ user.email }} wirklich löschen?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                        <button class="btn btn-danger btn-sm">Löschen</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <a href="{{ path('app_profile_index') }}" class="btn btn-ghost btn-sm">Profil</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

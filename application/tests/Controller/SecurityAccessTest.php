@@ -25,8 +25,10 @@ final class SecurityAccessTest extends WebTestCase
     public static function protectedUrls(): iterable
     {
         yield 'dashboard' => ['/dashboard'];
+        yield 'profile' => ['/profile'];
         yield 'customers' => ['/admin/customer'];
         yield 'invoices' => ['/admin/invoice'];
         yield 'time tracking' => ['/admin/time-tracking'];
+        yield 'user management' => ['/admin/users'];
     }
 }

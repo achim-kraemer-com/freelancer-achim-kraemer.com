@@ -1,0 +1,56 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Mein Profil · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Mein Profil</h1>
+            <p class="sub">{{ app.user.userIdentifier }} · {{ 'ROLE_ADMIN' in app.user.roles ? 'Administrator' : 'Benutzer' }}</p>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="card detail-card">
+            <h3>E-Mail ändern</h3>
+            {{ form_start(emailForm) }}
+                <div class="form-row">{{ form_label(emailForm.email) }}{{ form_widget(emailForm.email) }}{{ form_errors(emailForm.email) }}</div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">E-Mail speichern</button>
+                </div>
+            {{ form_end(emailForm) }}
+        </div>
+
+        <div class="card detail-card">
+            <h3>Passwort ändern</h3>
+            {{ form_start(passwordForm) }}
+                {{ form_errors(passwordForm) }}
+                <div class="form-row">{{ form_label(passwordForm.currentPassword) }}{{ form_widget(passwordForm.currentPassword) }}{{ form_errors(passwordForm.currentPassword) }}</div>
+                <div class="form-row">{{ form_label(passwordForm.newPassword.first) }}{{ form_widget(passwordForm.newPassword.first) }}{{ form_errors(passwordForm.newPassword.first) }}</div>
+                <div class="form-row">{{ form_label(passwordForm.newPassword.second) }}{{ form_widget(passwordForm.newPassword.second) }}{{ form_errors(passwordForm.newPassword.second) }}</div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Passwort ändern</button>
+                </div>
+            {{ form_end(passwordForm) }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>Zwei-Faktor-Authentifizierung</h2></div>
+        <div class="card detail-card">
+            {% if app.user.totpEnabled %}
+                <p>Status: <span class="status status-bezahlt">Aktiv</span></p>
+                <p class="sub">Beim Login wird zusätzlich ein Code aus deiner Authenticator-App abgefragt.</p>
+                <form method="post" action="{{ path('app_profile_2fa_disable') }}"
+                      onsubmit="return confirm('Zwei-Faktor-Authentifizierung wirklich deaktivieren?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('disable-2fa') }}">
+                    <button class="btn btn-danger btn-sm">2FA deaktivieren</button>
+                </form>
+            {% else %}
+                <p>Status: <span class="status status-verschickt">Inaktiv</span></p>
+                <p class="sub">Erhöhe die Sicherheit deines Kontos mit einer Authenticator-App (z. B. Google Authenticator).</p>
+                <a href="{{ path('app_profile_2fa_enable') }}" class="btn btn-primary btn-sm">2FA aktivieren</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

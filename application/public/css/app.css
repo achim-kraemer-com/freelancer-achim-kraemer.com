@@ -475,7 +475,7 @@ form label {
 }
 form input[type="text"], form input[type="email"], form input[type="number"],
 form input[type="date"], form input[type="url"], form input[type="search"],
-form textarea, form select {
+form input[type="password"], form textarea, form select {
     width: 100%;
     padding: 0.7rem 0.9rem;
     color: var(--text);
@@ -608,3 +608,20 @@ select.status-select {
 .pagination { display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1.5rem; }
 .pagination-info { color: var(--text-dim); font-size: 0.85rem; }
 .btn.is-disabled { opacity: 0.4; pointer-events: none; }
+
+/* Two-factor setup */
+.twofa-steps { margin: 0 0 1rem 1.1rem; color: var(--text-muted); line-height: 1.7; }
+.twofa-qr { display: flex; justify-content: center; padding: 1rem; background: #fff; border-radius: 0.75rem; width: max-content; margin: 0 auto 1rem; }
+.twofa-qr img { display: block; }
+.detail-card code { background: rgba(255,255,255,0.06); padding: 0.15rem 0.4rem; border-radius: 0.35rem; font-size: 0.9rem; letter-spacing: 0.05em; }
+
+.row-actions { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Two-factor setup: wide two-column layout (QR left, steps + form right) */
+.twofa-setup-grid { display: grid; grid-template-columns: minmax(240px, auto) 1fr; gap: 2.5rem; align-items: start; }
+.twofa-setup-qr { text-align: center; }
+.twofa-setup-qr .twofa-qr { margin: 0 auto 1rem; }
+.twofa-setup-qr code { display: inline-block; word-break: break-all; max-width: 100%; }
+.twofa-setup-form .twofa-steps { margin-top: 0; }
+.twofa-setup-form input[type="text"] { max-width: 14rem; }
+@media (max-width: 720px) { .twofa-setup-grid { grid-template-columns: 1fr; } }

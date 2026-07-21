@@ -1,0 +1,47 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}2FA aktivieren · Freelancer-CRM{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('app_profile_index') }}">Mein Profil</a> / 2FA aktivieren</div>
+
+    <div class="page-head">
+        <div>
+            <h1>Zwei-Faktor-Authentifizierung aktivieren</h1>
+            <p class="sub">Scanne den QR-Code mit deiner Authenticator-App und bestätige mit dem angezeigten Code.</p>
+        </div>
+    </div>
+
+    <div class="card detail-card">
+        <div class="twofa-setup-grid">
+            <div class="twofa-setup-qr">
+                <div class="twofa-qr">
+                    <img src="{{ qrDataUri }}" alt="QR-Code für 2FA" width="220" height="220">
+                </div>
+                <p class="sub">Kein Scanner? Gib diesen Schlüssel manuell ein:</p>
+                <p><code>{{ secret }}</code></p>
+            </div>
+
+            <div class="twofa-setup-form">
+                <ol class="twofa-steps">
+                    <li>Öffne deine Authenticator-App (Google Authenticator, Authy, …).</li>
+                    <li>Scanne den QR-Code oder gib den Schlüssel manuell ein.</li>
+                    <li>Gib den angezeigten 6-stelligen Code ein und bestätige.</li>
+                </ol>
+
+                <form method="post" action="{{ path('app_profile_2fa_enable') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('enable-2fa') }}">
+                    <div class="form-row">
+                        <label for="code">Code aus der App</label>
+                        <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]*"
+                               autocomplete="one-time-code" placeholder="123456" required autofocus>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Aktivieren</button>
+                        <a href="{{ path('app_profile_index') }}" class="btn btn-ghost">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

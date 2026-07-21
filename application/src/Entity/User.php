@@ -7,13 +7,19 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfiguration;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface as TotpTwoFactorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+#[UniqueEntity(fields: ['email'], message: 'Diese E-Mail-Adresse wird bereits verwendet.')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwoFactorInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,6 +27,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $email = null;
 
     /**
@@ -42,6 +50,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** Elapsed seconds accumulated from completed start/stop intervals of the stopwatch. */
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $timerAccumulatedSeconds = 0;
+
+    /** TOTP shared secret; null when two-factor authentication is disabled. */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $totpSecret = null;
 
     public function getId(): ?int
     {
@@ -186,5 +198,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->timerAccumulatedSeconds = 0;
 
         return $this;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function setTotpSecret(?string $totpSecret): static
+    {
+        $this->totpSecret = $totpSecret;
+
+        return $this;
+    }
+
+    public function isTotpEnabled(): bool
+    {
+        return $this->totpSecret !== null && $this->totpSecret !== '';
+    }
+
+    public function isTotpAuthenticationEnabled(): bool
+    {
+        return $this->isTotpEnabled();
+    }
+
+    public function getTotpAuthenticationUsername(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function getTotpAuthenticationConfiguration(): ?TotpConfigurationInterface
+    {
+        if (!$this->isTotpEnabled()) {
+            return null;
+        }
+
+        return new TotpConfiguration($this->totpSecret, TotpConfiguration::ALGORITHM_SHA1, 30, 6);
     }
 }
