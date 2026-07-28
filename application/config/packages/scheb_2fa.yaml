@@ -6,7 +6,7 @@ scheb_two_factor:
 
     totp:
         enabled: true
-        server_name: 'Freelancer-CRM'
-        issuer: 'Freelancer-CRM (Achim Krämer)'
+        server_name: 'Freelancer-Pro'
+        issuer: 'Freelancer-Pro (Achim Krämer)'
         # Use our own themed second-factor form.
         template: security/2fa_form.html.twig

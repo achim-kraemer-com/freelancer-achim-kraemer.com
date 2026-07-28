@@ -53,3 +53,5 @@
 
 # Docker local data
 /docker/data/
+
+.claude

@@ -1,9 +1,9 @@
-# Projekt-Kontext: freelancer-achim-kraemer.com (Freelancer-CRM)
+# Projekt-Kontext: freelancer-achim-kraemer.com (Freelancer-Pro)
 
 > Handoff-Zusammenfassung für einen neuen Chat / weitere Bearbeitung.
 
 ## Überblick
-Neue Symfony-App als **Freelancer-CRM**: Verwaltung von **Kunden → Projekten → Aufgaben → Rechnungen (PDF)**. Login-Bereich im Design von achim-kraemer.com (dunkles Glassmorphism, Lexend-Font, violette Akzente). Liegt im Repo `freelancer-achim-kraemer.com`, die eigentliche App im Unterordner **`application/`**.
+Neue Symfony-App als **Freelancer-Pro**: Verwaltung von **Kunden → Projekten → Aufgaben → Rechnungen (PDF)**. Login-Bereich im Design von achim-kraemer.com (dunkles Glassmorphism, Lexend-Font, violette Akzente). Liegt im Repo `freelancer-achim-kraemer.com`, die eigentliche App im Unterordner **`application/`**.
 
 ## Stack
 - **Symfony 8.1 / PHP 8.5**, Doctrine ORM + Migrations, **MariaDB 10.6**

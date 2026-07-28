@@ -1,6 +1,6 @@
 # freelancer-achim-kraemer.com
 
-Freelancer-CRM mit Login-Bereich im Design von [achim-kraemer.com](https://achim-kraemer.com)
+Freelancer-Pro mit Login-Bereich im Design von [achim-kraemer.com](https://achim-kraemer.com)
 (dunkles Glassmorphism-Theme, Lexend-Schrift, violette Akzente).
 
 Verwaltet **Kunden → Projekte → Aufgaben** und erstellt daraus **Rechnungen als PDF**.
