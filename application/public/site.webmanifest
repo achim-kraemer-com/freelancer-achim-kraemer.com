@@ -1,0 +1,17 @@
+{
+    "name": "Achim Krämer · Freelancer",
+    "short_name": "AK Freelancer",
+    "description": "Symfony Freelancer & PHP Webentwickler mit über 15 Jahren Erfahrung.",
+    "lang": "de",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#080b11",
+    "theme_color": "#7c3aed",
+    "icons": [
+        { "src": "/img/ak-mark-freelancer.svg", "sizes": "any", "type": "image/svg+xml" },
+        { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" },
+        { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

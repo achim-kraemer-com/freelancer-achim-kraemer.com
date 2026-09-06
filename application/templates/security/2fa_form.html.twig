@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Bestätigung · Achim Krämer{% endblock %}
+{% block title %}Bestätigung · Achim Krämer · Freelancer{% endblock %}
 
 {% block body %}
     <div class="auth-shell">
         <form method="post" action="{{ path('2fa_login_check') }}" class="card auth-card animate-in">
             <a href="{{ path('app_home') }}" class="brand">
-                <span class="dot"></span> Achim Krämer
+                <img src="{{ asset('img/ak-lockup-freelancer.svg') }}" alt="Achim Krämer · Freelancer"
+                     class="brand-lockup" width="280" height="64">
             </a>
 
             <h1>Zwei-Faktor-Bestätigung</h1>

@@ -5,7 +5,21 @@
         <title>{% block title %}Achim Krämer · Freelancer{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="{% block description %}Symfony Freelancer & PHP Webentwickler mit über 15 Jahren Erfahrung.{% endblock %}">
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.1em%22 font-size=%2288%22>⚡</text></svg>">
+
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
+        <link rel="icon" href="{{ asset('img/ak-mark-freelancer.svg') }}" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+        <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+        <meta name="theme-color" content="#7c3aed">
+        <meta name="color-scheme" content="dark">
+
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Achim Krämer · Freelancer">
+        <meta property="og:title" content="{{ block('title') }}">
+        <meta property="og:description" content="{{ block('description') }}">
+        <meta property="og:image" content="{{ absolute_url(asset('favicon-512.png')) }}">
+        <meta name="twitter:card" content="summary">
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">

@@ -1,5 +1,8 @@
 <nav class="admin-nav">
-    <a href="{{ path('app_dashboard') }}" class="brand"><span class="dot"></span> Freelancer-Pro</a>
+    <a href="{{ path('app_dashboard') }}" class="brand">
+        <img src="{{ asset('img/ak-mark-freelancer.svg') }}" alt="" class="brand-mark" width="64" height="64">
+        Freelancer-Pro
+    </a>
     {% if is_granted('ROLE_ADMIN') %}
         <div class="links">
             <a href="{{ path('admin_customer_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_customer' or app.request.attributes.get('_route') starts with 'admin_project' or app.request.attributes.get('_route') starts with 'admin_task' ? 'active' }}">Kunden</a>

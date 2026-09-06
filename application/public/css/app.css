@@ -2,6 +2,7 @@
    Achim Krämer · Freelancer — Design system
    Dark glassmorphism look inspired by achim-kraemer.com
    (Lexend typeface, #080b11 base, slate text, violet/purple accents)
+   Brand assets: public/img/ak-{mark,lockup}-freelancer.svg, favicon-*.png (#7c3aed)
    ========================================================================== */
 
 :root {
@@ -53,6 +54,11 @@ a { color: var(--accent); text-decoration: none; transition: color 0.2s ease; }
 a:hover { color: #d8b4fe; }
 
 h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing: -0.02em; }
+
+/* Brand assets ------------------------------------------------------------- */
+.brand-lockup,
+.brand-mark { display: block; width: auto; }
+.brand-mark { border-radius: 0.35rem; box-shadow: 0 0 16px rgba(168, 85, 247, 0.35); }
 
 .container {
     width: 100%;
@@ -138,16 +144,11 @@ h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing:
 .site-nav .brand {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
     font-weight: 700;
     color: #fff;
     font-size: 1.05rem;
 }
-.site-nav .brand .dot {
-    width: 0.7rem; height: 0.7rem; border-radius: 50%;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2));
-    box-shadow: 0 0 14px var(--accent);
-}
+.site-nav .brand .brand-lockup { height: 1.75rem; }
 .site-nav .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
 
 /* ==========================================================================
@@ -225,16 +226,9 @@ h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing:
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
     margin-bottom: 1.75rem;
-    font-weight: 700;
-    color: #fff;
 }
-.auth-card .brand .dot {
-    width: 0.7rem; height: 0.7rem; border-radius: 50%;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2));
-    box-shadow: 0 0 14px var(--accent);
-}
+.auth-card .brand .brand-lockup { height: 2.25rem; }
 .auth-card h1 { text-align: center; font-size: 1.6rem; }
 .auth-card .subtitle {
     text-align: center;
@@ -359,6 +353,7 @@ h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing:
 @media (max-width: 640px) {
     .auth-card { padding: 2rem 1.5rem; }
     .site-nav { padding: 0.85rem 1rem; }
+    .site-nav .brand .brand-lockup { height: 1.5rem; }
 }
 
 /* ==========================================================================
@@ -378,12 +373,8 @@ h1, h2, h3 { line-height: 1.15; margin: 0 0 0.5rem; color: #fff; letter-spacing:
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
 }
-.admin-nav .brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 700; color: #fff; }
-.admin-nav .brand .dot {
-    width: 0.7rem; height: 0.7rem; border-radius: 50%;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2));
-    box-shadow: 0 0 14px var(--accent);
-}
+.admin-nav .brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 700; color: #fff; white-space: nowrap; }
+.admin-nav .brand .brand-mark { height: 1.6rem; }
 .admin-nav .links { display: flex; gap: 1.25rem; align-items: center; }
 .admin-nav .links a { color: var(--text-muted); font-weight: 500; }
 .admin-nav .links a:hover, .admin-nav .links a.active { color: #fff; }

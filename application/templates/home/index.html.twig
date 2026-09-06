@@ -5,7 +5,8 @@
 {% block body %}
     <nav class="site-nav">
         <a href="{{ path('app_home') }}" class="brand">
-            <span class="dot"></span> Achim Krämer
+            <img src="{{ asset('img/ak-lockup-freelancer.svg') }}" alt="Achim Krämer · Freelancer"
+                 class="brand-lockup" width="280" height="64">
         </a>
         <div class="nav-actions">
             {% if app.user %}

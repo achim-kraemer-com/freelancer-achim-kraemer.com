@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Login · Achim Krämer{% endblock %}
+{% block title %}Login · Achim Krämer · Freelancer{% endblock %}
 
 {% block body %}
     <div class="auth-shell">
         <form method="post" class="card auth-card animate-in">
             <a href="{{ path('app_home') }}" class="brand">
-                <span class="dot"></span> Achim Krämer
+                <img src="{{ asset('img/ak-lockup-freelancer.svg') }}" alt="Achim Krämer · Freelancer"
+                     class="brand-lockup" width="280" height="64">
             </a>
 
             <h1>Willkommen zurück</h1>
