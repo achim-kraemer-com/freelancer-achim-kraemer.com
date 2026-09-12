@@ -32,6 +32,7 @@
                 <dt>Nummer</dt><dd>{{ invoice.number }}</dd>
                 <dt>Datum</dt><dd>{{ invoice.invoiceDate|date('d.m.Y') }}</dd>
                 <dt>Betrag</dt><dd>{{ invoice.totalAmount|number_format(2, ',', '.') }} €</dd>
+                <dt>Vorlage</dt><dd>{{ invoice.template.label }}</dd>
                 <dt>Fällig</dt>
                 <dd>
                     {% if invoice.dueDate %}

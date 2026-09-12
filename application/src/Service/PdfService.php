@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enum\InvoiceTemplate;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Fills the blank invoice PDF (Musterrechnung.pdf) with a text overlay
- * positioned in millimetres, using FPDI on top of TCPDF.
+ * Fills a blank invoice PDF (Musterrechnung*.pdf, chosen via {@see InvoiceTemplate})
+ * with a text overlay positioned in millimetres, using FPDI on top of TCPDF.
  */
 class PdfService
 {
@@ -23,7 +24,7 @@ class PdfService
      *
      * @return string the absolute path of the generated PDF
      */
-    public function modifyPdf(array $textOverlay, string $outputFilename): string
+    public function modifyPdf(array $textOverlay, string $outputFilename, InvoiceTemplate $template): string
     {
         $outputDir = $this->params->get('invoices_path');
         (new Filesystem())->mkdir($outputDir);
@@ -32,7 +33,7 @@ class PdfService
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
 
-        $templateFile = $this->params->get('pdf_template_path').'Musterrechnung.pdf';
+        $templateFile = $this->params->get('pdf_template_path').$template->pdfFile();
         $pageCount    = $pdf->setSourceFile($templateFile);
 
         for ($pageNo = 1; $pageNo <= $pageCount; ++$pageNo) {

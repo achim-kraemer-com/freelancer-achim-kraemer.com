@@ -100,9 +100,20 @@
                 </div>
 
                 {% if project.openTotalCost > 0 %}
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Rechnung aus Auswahl erstellen</button>
-                        <span class="form-help">Wähle offene Aufgaben aus – daraus wird ein Rechnungs-PDF erzeugt.</span>
+                    <div class="form-actions invoice-actions">
+                        <fieldset class="radio-group">
+                            <legend>Rechnungsvorlage</legend>
+                            {% for template in enum_cases('App\\Enum\\InvoiceTemplate') %}
+                                <label class="radio">
+                                    <input type="radio" name="template" value="{{ template.value }}" {{ loop.first ? 'checked' }}>
+                                    {{ template.label }}
+                                </label>
+                            {% endfor %}
+                        </fieldset>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Rechnung aus Auswahl erstellen</button>
+                            <span class="form-help">Wähle offene Aufgaben aus – daraus wird ein Rechnungs-PDF mit dem gewählten Briefkopf erzeugt.</span>
+                        </div>
                     </div>
                 {% endif %}
             </form>

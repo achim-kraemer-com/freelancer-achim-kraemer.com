@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Customer;
 use App\Entity\Invoice;
 use App\Entity\Project;
+use App\Enum\InvoiceTemplate;
 use App\Form\ProjectType;
 use App\Repository\InvoiceRepository;
 use App\Repository\TaskRepository;
@@ -113,6 +114,7 @@ class ProjectController extends AbstractController
         $invoice->setNumber($invoiceNo);
         $invoice->setCustomer($customer);
         $invoice->setProject($project);
+        $invoice->setTemplate(InvoiceTemplate::tryFrom((string) $request->request->get('template')) ?? InvoiceTemplate::AchimKraemer);
         $invoice->setInvoiceDate($invoiceDate);
         $invoice->setDueDate((clone $invoiceDate)->modify('+'.Invoice::DEFAULT_PAYMENT_TERM_DAYS.' days'));
         $invoice->setStatus(Invoice::STATUS_CREATED);

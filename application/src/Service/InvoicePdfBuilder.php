@@ -8,8 +8,8 @@ use App\Entity\Invoice;
 use App\Entity\Task;
 
 /**
- * Builds the text overlay for an invoice and renders it onto the blank
- * invoice template via {@see PdfService}. Shared by invoice creation and
+ * Builds the text overlay for an invoice and renders it onto the invoice's
+ * blank template via {@see PdfService}. Shared by invoice creation and
  * by the PDF (re)generation command.
  */
 class InvoicePdfBuilder
@@ -81,7 +81,7 @@ class InvoicePdfBuilder
         $overlay[1][] = ['x' => 172, 'y' => 66, 'text' => $this->germanMonth($periodDate->format('M/Y'))];
         $overlay[1][] = ['x' => 190, 'y' => 194, 'text' => $this->money($total), 'B' => 'B', 'R' => 'R'];
 
-        $this->pdf->modifyPdf($overlay, $number);
+        $this->pdf->modifyPdf($overlay, $number, $invoice->getTemplate());
 
         return 'Rechnung-'.$number.'.pdf';
     }

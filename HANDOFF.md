@@ -15,12 +15,13 @@ Neue Symfony-App als **Freelancer-Pro**: Verwaltung von **Kunden → Projekten �
 - **Customer** — vollständige Kontaktdaten (Name, Firma, E-Mail, Telefon/Mobil, Adresse, Website, aktiv)
 - **Project** — gehört zu Customer, hat Name + Beschreibung
 - **Task** (Aufgabe) — gehört zu Project; entweder `hours` (× **60 €/Std.**, `Task::HOURLY_RATE`) **oder** fester `price`. `getCost()` rechnet automatisch; `isHourly()` = price null & hours gesetzt
-- **Invoice** — aus mehreren offenen Tasks **eines** Projekts; Status **erstellt → verschickt → bezahlt** (`Invoice::STATUS_*`). Abgerechnete Tasks werden gesperrt (`invoiced=true`)
+- **Invoice** — aus mehreren offenen Tasks **eines** Projekts; Status **erstellt → verschickt → bezahlt** (`Invoice::STATUS_*`). Abgerechnete Tasks werden gesperrt (`invoiced=true`). Feld `template` (`App\Enum\InvoiceTemplate`): **Achim Krämer** oder **Mirwena** — bestimmt das Blanko-PDF (Briefkopf/Logo), wird beim Erstellen auf der Projektseite gewählt
 
 ## Wichtige Architektur/Dateien
 - `src/Controller/`: CustomerController, ProjectController (inkl. `createInvoice`), TaskController, InvoiceController, SecurityController, HomeController, DashboardController
-- `src/Service/PdfService.php` — legt Text-Overlay (mm-Koordinaten) über Blanko-PDF `config/pdfs/Musterrechnung.pdf` (aus achim-kraemer.com übernommen)
-- `src/Service/InvoicePdfBuilder.php` — **geteilte** Overlay-Logik (Controller + Command); Absender/Bank/„Kleinunternehmer §19"-Zeile kommen fix aus dem Blanko-PDF
+- `src/Service/PdfService.php` — legt Text-Overlay (mm-Koordinaten) über das Blanko-PDF der gewählten Vorlage: `config/pdfs/Musterrechnung.pdf` (Achim Krämer, aus achim-kraemer.com übernommen, Google-Docs-Export) bzw. `config/pdfs/Musterrechnung-Mirwena.pdf` (Mirwena)
+- `src/Service/InvoicePdfBuilder.php` — **geteilte** Overlay-Logik (Controller + Command); Absender/Bank/„Kleinunternehmer §19"-Zeile kommen fix aus dem Blanko-PDF. Die Overlay-Koordinaten gelten für beide Vorlagen (Mirwena-Vorlage hat dieselben Positionen)
+- `src/Command/BuildMirwenaTemplateCommand.php` (`app:build-mirwena-template`) — erzeugt `Musterrechnung-Mirwena.pdf` aus `config/pdfs/mirwena-logo.png` (Lockup von mirwena.de) + festen Briefkopf-Texten (E-Mail `kontakt@mirwena.de`, Internet `mirwena.de`, sonst wie Achim Krämer). Nach Textänderungen erneut ausführen und das PDF committen
 - `src/Command/`: `app:create-user <email> <pw> <role>`, `app:generate-invoice-pdfs [--missing-only]`
 - CRM liegt unter **`/admin` (ROLE_ADMIN)**; Login via Entity-User-Provider
 

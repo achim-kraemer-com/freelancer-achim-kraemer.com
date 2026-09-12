@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\InvoiceTemplate;
 use App\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -62,6 +63,10 @@ class Invoice
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $pdfFilename = null;
+
+    /** Letterhead (blank PDF) the invoice is rendered with; invoices predating the choice use Achim Krämer's. */
+    #[ORM\Column(length: 20, enumType: InvoiceTemplate::class, options: ['default' => 'achim-kraemer'])]
+    private InvoiceTemplate $template = InvoiceTemplate::AchimKraemer;
 
     /**
      * @var Collection<int, Task>
@@ -221,6 +226,18 @@ class Invoice
     public function setPdfFilename(?string $pdfFilename): static
     {
         $this->pdfFilename = $pdfFilename;
+
+        return $this;
+    }
+
+    public function getTemplate(): InvoiceTemplate
+    {
+        return $this->template;
+    }
+
+    public function setTemplate(InvoiceTemplate $template): static
+    {
+        $this->template = $template;
 
         return $this;
     }

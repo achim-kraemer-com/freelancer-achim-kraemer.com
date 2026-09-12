@@ -12,14 +12,18 @@ Verwaltet **Kunden → Projekte → Aufgaben** und erstellt daraus **Rechnungen 
 - **Aufgabe** – gehört zu einem Projekt, hat einen Namen und entweder
   **Stunden** (berechnet mit **60 € / Std.**) **oder** einen **Festpreis**.
 - **Rechnung** – wird aus mehreren offenen Aufgaben **eines** Projekts erzeugt.
-  Das Blanko-PDF (`config/pdfs/Musterrechnung.pdf`, aus achim-kraemer.com übernommen)
-  wird per Text-Overlay (FPDI + TCPDF) mit Adresse, Positionen und Summe gefüllt.
+  Ein Blanko-PDF wird per Text-Overlay (FPDI + TCPDF) mit Adresse, Positionen und
+  Summe gefüllt. Beim Erstellen wählt man die **Rechnungsvorlage** (Briefkopf):
+  **Achim Krämer** (`config/pdfs/Musterrechnung.pdf`, aus achim-kraemer.com übernommen)
+  oder **Mirwena** (`config/pdfs/Musterrechnung-Mirwena.pdf` mit dem Logo von mirwena.de,
+  erzeugt durch `app:build-mirwena-template`).
   Status: **erstellt → verschickt → bezahlt**.
 
 ### Rechnungs-Workflow
 
 1. Kunde anlegen → Projekt anlegen → Aufgaben mit Stunden oder Festpreis erfassen.
-2. Auf der Projektseite offene Aufgaben auswählen → **„Rechnung aus Auswahl erstellen"**.
+2. Auf der Projektseite offene Aufgaben auswählen, Rechnungsvorlage (Achim Krämer / Mirwena)
+   wählen → **„Rechnung aus Auswahl erstellen"**.
 3. Das befüllte PDF wird unter `var/invoices/` erzeugt und ist über die Rechnung
    herunterladbar; abgerechnete Aufgaben werden gesperrt.
 4. Rechnungsstatus auf **verschickt** / **bezahlt** setzen. Beim Löschen einer
