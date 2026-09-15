@@ -1,0 +1,22 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Neue Signatur · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_signature_index') }}">Signaturen</a> / Neu</div>
+    <div class="page-head">
+        <div>
+            <h1>Neue Signatur</h1>
+            <p class="sub">Reiner Text – so, wie er unter der E-Mail stehen soll – oder HTML mit Logo und Links.</p>
+        </div>
+    </div>
+
+    <div class="card form-card">
+        {% include 'signature/_form.html.twig' with { submit_label: 'Signatur anlegen' } %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script defer src="{{ asset('js/signature-editor.js') }}"></script>
+{% endblock %}

@@ -10,6 +10,7 @@ use App\Entity\Project;
 use App\Enum\InvoiceTemplate;
 use App\Form\ProjectType;
 use App\Repository\InvoiceRepository;
+use App\Repository\MailSignatureRepository;
 use App\Repository\TaskRepository;
 use App\Service\InvoicePdfBuilder;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,9 +47,19 @@ class ProjectController extends AbstractController
     }
 
     #[Route('/project/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(Project $project): Response
+    public function show(Project $project, MailSignatureRepository $signatureRepository): Response
     {
-        return $this->render('project/show.html.twig', ['project' => $project]);
+        // Signature preset per letterhead, so the choice follows the template radio.
+        $defaultSignatures = [];
+        foreach (InvoiceTemplate::cases() as $template) {
+            $defaultSignatures[$template->value] = $signatureRepository->findDefaultFor($template)?->getId();
+        }
+
+        return $this->render('project/show.html.twig', [
+            'project'           => $project,
+            'signatures'        => $signatureRepository->findAllOrdered(),
+            'defaultSignatures' => $defaultSignatures,
+        ]);
     }
 
     #[Route('/project/{id}/edit', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
@@ -89,6 +100,7 @@ class ProjectController extends AbstractController
         Request $request,
         TaskRepository $taskRepository,
         InvoiceRepository $invoiceRepository,
+        MailSignatureRepository $signatureRepository,
         EntityManagerInterface $em,
         InvoicePdfBuilder $pdfBuilder,
     ): Response {
@@ -115,6 +127,10 @@ class ProjectController extends AbstractController
         $invoice->setCustomer($customer);
         $invoice->setProject($project);
         $invoice->setTemplate(InvoiceTemplate::tryFrom((string) $request->request->get('template')) ?? InvoiceTemplate::AchimKraemer);
+        // The e-mail signature as chosen in the form; without the field, the letterhead's default applies.
+        $invoice->setSignature($request->request->has('signature')
+            ? $signatureRepository->find((int) $request->request->get('signature'))
+            : $signatureRepository->findDefaultFor($invoice->getTemplate()));
         $invoice->setInvoiceDate($invoiceDate);
         $invoice->setDueDate((clone $invoiceDate)->modify('+'.Invoice::DEFAULT_PAYMENT_TERM_DAYS.' days'));
         $invoice->setStatus(Invoice::STATUS_CREATED);

@@ -105,14 +105,29 @@
                             <legend>Rechnungsvorlage</legend>
                             {% for template in enum_cases('App\\Enum\\InvoiceTemplate') %}
                                 <label class="radio">
-                                    <input type="radio" name="template" value="{{ template.value }}" {{ loop.first ? 'checked' }}>
+                                    <input type="radio" name="template" value="{{ template.value }}" {{ loop.first ? 'checked' }}
+                                           data-default-signature="{{ defaultSignatures[template.value] ?? '' }}">
                                     {{ template.label }}
                                 </label>
                             {% endfor %}
                         </fieldset>
+                        {% if signatures is not empty %}
+                            {# Preset with the default signature of the first (checked) letterhead;
+                               the script keeps it in step when the letterhead changes. #}
+                            {% set preset = defaultSignatures|first %}
+                            <fieldset class="radio-group">
+                                <legend><label for="invoice-signature">E-Mail-Signatur</label></legend>
+                                <select id="invoice-signature" name="signature" data-invoice-signature style="width:auto;">
+                                    <option value="">Keine</option>
+                                    {% for signature in signatures %}
+                                        <option value="{{ signature.id }}" {{ preset == signature.id ? 'selected' }}>{{ signature.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </fieldset>
+                        {% endif %}
                         <div>
                             <button type="submit" class="btn btn-primary">Rechnung aus Auswahl erstellen</button>
-                            <span class="form-help">Wähle offene Aufgaben aus – daraus wird ein Rechnungs-PDF mit dem gewählten Briefkopf erzeugt.</span>
+                            <span class="form-help">Wähle offene Aufgaben aus – daraus wird ein Rechnungs-PDF mit dem gewählten Briefkopf erzeugt. Die Signatur steht später unter der E-Mail und lässt sich an der Rechnung noch ändern.</span>
                         </div>
                     </div>
                 {% endif %}
@@ -121,6 +136,17 @@
     </div>
 
     <script>
+        // The signature follows the letterhead: each radio knows its default signature.
+        (function () {
+            var select = document.querySelector('[data-invoice-signature]');
+            if (!select) { return; }
+            document.querySelectorAll('input[name="template"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    select.value = radio.dataset.defaultSignature || '';
+                });
+            });
+        })();
+
         // Inline task status change: the selects live inside the invoice form, so
         // they carry no name and post separately via fetch instead of submitting it.
         document.querySelectorAll('[data-task-status]').forEach(function (select) {

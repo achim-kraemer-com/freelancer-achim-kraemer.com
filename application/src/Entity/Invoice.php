@@ -68,6 +68,11 @@ class Invoice
     #[ORM\Column(length: 20, enumType: InvoiceTemplate::class, options: ['default' => 'achim-kraemer'])]
     private InvoiceTemplate $template = InvoiceTemplate::AchimKraemer;
 
+    /** Signature placed under the e-mail the invoice is sent with; null sends the mail without one. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?MailSignature $signature = null;
+
     /**
      * @var Collection<int, Task>
      */
@@ -238,6 +243,18 @@ class Invoice
     public function setTemplate(InvoiceTemplate $template): static
     {
         $this->template = $template;
+
+        return $this;
+    }
+
+    public function getSignature(): ?MailSignature
+    {
+        return $this->signature;
+    }
+
+    public function setSignature(?MailSignature $signature): static
+    {
+        $this->signature = $signature;
 
         return $this;
     }

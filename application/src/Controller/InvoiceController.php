@@ -7,6 +7,9 @@ namespace App\Controller;
 use App\Entity\Invoice;
 use App\Entity\InvoiceDispatch;
 use App\Repository\InvoiceRepository;
+use App\Repository\MailSignatureRepository;
+use App\Service\InvoiceMailer;
+use App\Service\MailSanitizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -15,9 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -40,9 +40,45 @@ class InvoiceController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(Invoice $invoice): Response
+    public function show(Invoice $invoice, MailSignatureRepository $signatureRepository, MailSanitizer $sanitizer): Response
     {
-        return $this->render('invoice/show.html.twig', ['invoice' => $invoice]);
+        $signatures = $signatureRepository->findAllOrdered();
+
+        // Preview per signature: HTML defused, remote images may stay – it is
+        // one's own content, not a foreign tracking pixel.
+        $previews = [];
+        foreach ($signatures as $signature) {
+            $html = $signature->asHtml();
+            if ($html !== null) {
+                $previews[(int) $signature->getId()] = $sanitizer->clean($html, allowRemoteImages: true);
+            }
+        }
+
+        return $this->render('invoice/show.html.twig', [
+            'invoice'    => $invoice,
+            'signatures' => $signatures,
+            'previews'   => $previews,
+        ]);
+    }
+
+    #[Route('/{id}/signature', name: 'signature', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function signature(
+        Invoice $invoice,
+        Request $request,
+        MailSignatureRepository $signatureRepository,
+        EntityManagerInterface $em,
+    ): Response {
+        if ($this->isCsrfTokenValid('signature'.$invoice->getId(), (string) $request->request->get('_token'))) {
+            // An empty or unknown id counts as "none".
+            $signature = $signatureRepository->find((int) $request->request->get('signature'));
+            $invoice->setSignature($signature);
+            $em->flush();
+            $this->addFlash('success', $signature !== null
+                ? 'Signatur „'.$signature->getLabel().'“ wird beim Versand verwendet.'
+                : 'Die Rechnung wird ohne Signatur versendet.');
+        }
+
+        return $this->redirectToRoute('admin_invoice_show', ['id' => $invoice->getId()]);
     }
 
     #[Route('/{id}/status', name: 'status', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -76,15 +112,12 @@ class InvoiceController extends AbstractController
         Invoice $invoice,
         Request $request,
         EntityManagerInterface $em,
-        MailerInterface $mailer,
+        InvoiceMailer $invoiceMailer,
         ContainerBagInterface $params,
     ): Response {
         if (!$this->isCsrfTokenValid('send'.$invoice->getId(), (string) $request->request->get('_token'))) {
             return $this->redirectToRoute('admin_invoice_show', ['id' => $invoice->getId()]);
         }
-
-        $mailerFrom     = (string) $params->get('mailer_from');
-        $mailerFromName = (string) $params->get('mailer_from_name');
 
         $recipient = $invoice->getCustomer()?->getEmail();
         if (!$recipient) {
@@ -101,25 +134,8 @@ class InvoiceController extends AbstractController
             return $this->redirectToRoute('admin_invoice_show', ['id' => $invoice->getId()]);
         }
 
-        $body = \sprintf(
-            "Guten Tag,\n\nanbei erhalten Sie die Rechnung %s vom %s über %s €.\n\n"
-            ."Vielen Dank für die Zusammenarbeit.\n\nMit freundlichen Grüßen\n%s",
-            $invoice->getNumber(),
-            $invoice->getInvoiceDate()?->format('d.m.Y'),
-            \number_format((float) $invoice->getTotalAmount(), 2, ',', '.'),
-            $mailerFromName,
-        );
-
-        $email = (new Email())
-            ->from(new Address($mailerFrom, $mailerFromName))
-            ->replyTo($mailerFrom)
-            ->to($recipient)
-            ->subject('Rechnung '.$invoice->getNumber())
-            ->text($body)
-            ->attachFromPath($filePath, $filename, 'application/pdf');
-
         try {
-            $mailer->send($email);
+            $invoiceMailer->send($invoice, $recipient, $filePath, $filename);
         } catch (TransportExceptionInterface $e) {
             $this->addFlash('error', 'E-Mail konnte nicht gesendet werden: '.$e->getMessage());
 

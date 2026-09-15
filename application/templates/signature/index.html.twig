@@ -1,0 +1,78 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Signaturen · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Signaturen</h1>
+            <p class="sub">{{ signatures|length }} angelegt · die Vorgabe je Rechnungsvorlage steht hier, gewählt wird an der Rechnung</p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_signature_new') }}" class="btn btn-primary">+ Neue Signatur</a>
+        </div>
+    </div>
+
+    {% if signatures is empty %}
+        <div class="empty">
+            <strong>Noch keine Signatur</strong><br>
+            Eine Signatur steht unter jeder E-Mail, mit der eine Rechnung verschickt wird –
+            Name, Telefon, Anschrift, was dazugehört. Als reiner Text oder als HTML mit Logo
+            und Links, etwa aus dem Signatur-Generator eingefügt. Du kannst mehrere anlegen
+            und jeder Rechnungsvorlage eine davon als Vorgabe zuweisen.
+            <div style="margin-top:1.25rem">
+                <a href="{{ path('admin_signature_new') }}" class="btn btn-primary">Signatur anlegen</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Text</th>
+                        <th>Vorgabe für</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for signature in signatures %}
+                        <tr>
+                            <td>
+                                {{ signature.label }}
+                                {% if signature.isHtml %}<span class="chip">HTML</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if signature.isHtml %}
+                                    {# Already defused by the MailSanitizer. #}
+                                    <div class="signature-html message-html">{{ previews[signature.id]|raw }}</div>
+                                {% else %}
+                                    <div class="signature-text">{{ signature.text }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {# Which letterhead presets this signature – otherwise one only
+                                   sees at the invoice whether the assignment is right. #}
+                                {% if signature.defaultForTemplate %}
+                                    <span class="chip">{{ signature.defaultForTemplate.label }}</span>
+                                {% else %}
+                                    <span class="muted">nicht zugewiesen</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a href="{{ path('admin_signature_edit', {id: signature.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
+                                    <form method="post" action="{{ path('admin_signature_delete', {id: signature.id}) }}" class="inline-form"
+                                          onsubmit="return confirm('Signatur „{{ signature.label|e('js') }}“ entfernen? Rechnungen, die sie nutzen, werden dann ohne Signatur versendet.')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ signature.id) }}">
+                                        <button class="btn btn-danger btn-sm">Entfernen</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

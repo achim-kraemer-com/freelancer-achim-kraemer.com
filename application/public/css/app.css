@@ -622,3 +622,78 @@ select.status-select {
 .twofa-setup-form .twofa-steps { margin-top: 0; }
 .twofa-setup-form input[type="text"] { max-width: 14rem; }
 @media (max-width: 720px) { .twofa-setup-grid { grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   E-Mail-Signaturen (Verwaltung, Editor, Vorschau) – nach dem Vorbild des Portals
+   ========================================================================== */
+/* Some blocks are display:flex; the hidden attribute must still win over that. */
+[hidden] { display: none !important; }
+
+.chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.15rem 0.55rem; border-radius: 999px; margin-left: 0.35rem;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--text-muted); background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+}
+
+/* Radio choice rendered by Symfony (input + label side by side): the labels
+   sit inline next to their radio instead of the block layout of field labels. */
+.radio-choices > div { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.45rem; line-height: 2; }
+.radio-choices > div label { display: inline; margin: 0 1.2rem 0 0; font-weight: 500; font-size: 0.9rem; color: var(--text); }
+form input[type="radio"] { width: 1rem; height: 1rem; margin: 0; accent-color: var(--accent-strong); }
+
+/* HTML signatures are designed for light mail clients ("color:#333" in the
+   markup) – on the dark background they would be unreadable. So they get a
+   white sheet of their own, as Gmail, Outlook and Thunderbird do in dark mode. */
+.message-html {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #1f2937;
+    background: #fff;
+    padding: 1.25rem 1.4rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    overflow-x: auto;
+    white-space: normal;
+}
+.message-html h1, .message-html h2, .message-html h3,
+.message-html h4, .message-html h5, .message-html h6 { color: inherit; }
+.message-html img { max-width: 100%; height: auto; }
+.message-html table { max-width: 100%; border-collapse: collapse; }
+.message-html a { color: #6d28d9; text-decoration: underline; }
+.message-html a:hover { color: #4c1d95; }
+.message-html hr { border: none; border-top: 1px solid rgba(0, 0, 0, 0.12); }
+
+/* The text of a signature in the list – with its line breaks, no wider than
+   necessary, but not narrower either: on the phone the table rather scrolls
+   sideways than every word wrapping. */
+.signature-text {
+    white-space: pre-line; min-width: 16rem; max-width: 26rem; font-size: 0.85rem; line-height: 1.45;
+    color: var(--text-muted); overflow-wrap: break-word;
+}
+/* HTML signatures in the list: on white, and no larger than a signature is. */
+td .signature-html { min-width: 16rem; max-width: 40rem; padding: 0.75rem 0.9rem; font-size: 0.8rem; line-height: 1.4; }
+
+/* Signatures bring their own dimensions (width attributes, fixed tables).
+   The max-width:100% of .message-html would shrink the 14-px icons in a
+   squeezed table to 0. */
+.message-html.signature-html img, .message-html.signature-preview img, .message-html.signatur-editor img { max-width: none; }
+
+/* Preview of the chosen signature at the invoice, on white as well. */
+.signature-preview { margin-top: 0.6rem; padding: 1rem 1.1rem; }
+.signature-plain {
+    margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.9rem; line-height: 1.5; color: #1f2937;
+}
+.signature-choice select { max-width: 24rem; }
+/* Signature choice on the project page sits in the letterhead row: the legend
+   carries a label, which must not fall back into the block layout of field labels. */
+.radio-group legend label { display: inline; margin: 0; font: inherit; color: inherit; }
+
+/* The editor for HTML signatures: a toolbar and, below it, the editable box
+   that stands on white like the preview. */
+.signatur-werkzeuge { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin-bottom: 0.5rem; }
+.signatur-werkzeuge .spacer { flex: 1; }
+.signatur-werkzeuge [aria-pressed="true"] { background: rgba(255,255,255,0.12); color: #fff; }
+.signatur-editor { min-height: 12rem; outline: none; cursor: text; margin-bottom: 1.1rem; }
+.signatur-editor:focus { box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.35); }

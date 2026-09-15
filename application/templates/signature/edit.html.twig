@@ -1,0 +1,34 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ signature.label }} bearbeiten · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_signature_index') }}">Signaturen</a> / {{ signature.label }}</div>
+    <div class="page-head">
+        <div>
+            <h1>{{ signature.label }}</h1>
+            <p class="sub">
+                {% if signature.defaultForTemplate %}
+                    Vorgabe für neue Rechnungen mit der Vorlage {{ signature.defaultForTemplate.label }}.
+                {% else %}
+                    Keiner Rechnungsvorlage als Vorgabe zugewiesen.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card form-card">
+        {% include 'signature/_form.html.twig' with { submit_label: 'Änderungen speichern' } %}
+    </div>
+
+    <form method="post" action="{{ path('admin_signature_delete', {id: signature.id}) }}"
+          class="inline-form" onsubmit="return confirm('Signatur „{{ signature.label|e('js') }}“ entfernen? Rechnungen, die sie nutzen, werden dann ohne Signatur versendet.');" style="margin-top:1.5rem; display:block;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ signature.id) }}">
+        <button class="btn btn-danger btn-sm">Signatur entfernen</button>
+    </form>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script defer src="{{ asset('js/signature-editor.js') }}"></script>
+{% endblock %}

@@ -15,7 +15,8 @@ Neue Symfony-App als **Freelancer-Pro**: Verwaltung von **Kunden → Projekten �
 - **Customer** — vollständige Kontaktdaten (Name, Firma, E-Mail, Telefon/Mobil, Adresse, Website, aktiv)
 - **Project** — gehört zu Customer, hat Name + Beschreibung
 - **Task** (Aufgabe) — gehört zu Project; entweder `hours` (× **60 €/Std.**, `Task::HOURLY_RATE`) **oder** fester `price`. `getCost()` rechnet automatisch; `isHourly()` = price null & hours gesetzt
-- **Invoice** — aus mehreren offenen Tasks **eines** Projekts; Status **erstellt → verschickt → bezahlt** (`Invoice::STATUS_*`). Abgerechnete Tasks werden gesperrt (`invoiced=true`). Feld `template` (`App\Enum\InvoiceTemplate`): **Achim Krämer** oder **Mirwena** — bestimmt das Blanko-PDF (Briefkopf/Logo), wird beim Erstellen auf der Projektseite gewählt
+- **Invoice** — aus mehreren offenen Tasks **eines** Projekts; Status **erstellt → verschickt → bezahlt** (`Invoice::STATUS_*`). Abgerechnete Tasks werden gesperrt (`invoiced=true`). Feld `template` (`App\Enum\InvoiceTemplate`): **Achim Krämer** oder **Mirwena** — bestimmt das Blanko-PDF (Briefkopf/Logo), wird beim Erstellen auf der Projektseite gewählt. Feld `signature` (ManyToOne `MailSignature`, nullable, `ON DELETE SET NULL`): die E-Mail-Signatur, mit der die Rechnung verschickt wird
+- **MailSignature** — E-Mail-Signatur nach dem Vorbild von portal.achim-kraemer.com (dort `MailSignature`/`MailSignatureController`): `label`, `text`, `format` (`text`|`html`), `position`, `defaultForTemplate` (nullable `InvoiceTemplate` — Vorgabe je Briefkopf, nur eine je Vorlage; `SignatureController::keepDefaultUnique`). Signaturen sind global (kein Owner), da Rechnungen/Kunden ebenfalls allen Admins gehören. `asBlock()` = Textfassung hinter `-- `, `asHtml()` = HTML-Quelltext (nur bei HTML)
 
 ## Wichtige Architektur/Dateien
 - `src/Controller/`: CustomerController, ProjectController (inkl. `createInvoice`), TaskController, InvoiceController, SecurityController, HomeController, DashboardController
@@ -23,6 +24,7 @@ Neue Symfony-App als **Freelancer-Pro**: Verwaltung von **Kunden → Projekten �
 - `src/Service/InvoicePdfBuilder.php` — **geteilte** Overlay-Logik (Controller + Command); Absender/Bank/„Kleinunternehmer §19"-Zeile kommen fix aus dem Blanko-PDF. Die Overlay-Koordinaten gelten für beide Vorlagen (Mirwena-Vorlage hat dieselben Positionen)
 - `src/Command/BuildMirwenaTemplateCommand.php` (`app:build-mirwena-template`) — erzeugt `Musterrechnung-Mirwena.pdf` aus `config/pdfs/mirwena-logo.png` (Lockup von mirwena.de) + festen Briefkopf-Texten (E-Mail `kontakt@mirwena.de`, Internet `mirwena.de`, sonst wie Achim Krämer). Nach Textänderungen erneut ausführen und das PDF committen
 - `src/Command/`: `app:create-user <email> <pw> <role>`, `app:generate-invoice-pdfs [--missing-only]`
+- **Signaturen / Rechnungsmail** (aus dem Portal übernommen): `src/Controller/SignatureController.php` (`/admin/signature`, CRUD), `src/Form/MailSignatureType.php`, `templates/signature/*`, `public/js/signature-editor.js` (visueller Editor für HTML-Signaturen: Werkzeugleiste, Quelltext-Umschalter, HTML-Einfügen aus dem Signatur-Generator, Bilder als data:-URL), `src/Service/MailSanitizer.php` (entschärft HTML für die Vorschau), `src/Service/HtmlToText.php` (Textfassung einer HTML-Signatur), `src/Service/MailBody.php` (Text + Signatur → Text-/HTML-Teil), `src/Service/InvoiceMailer.php` (baut/verschickt die Rechnungsmail; data:-Bilder werden als `cid:`-Anhänge eingebettet). Auswahl: Projektseite (Select folgt der Vorlagen-Radio per JS, `ProjectController::show/createInvoice`), Rechnungsseite (Abschnitt „E-Mail-Signatur“ mit Vorschau, `InvoiceController::signature`)
 - CRM liegt unter **`/admin` (ROLE_ADMIN)**; Login via Entity-User-Provider
 
 ## Lokale Entwicklung (Docker)
@@ -36,6 +38,7 @@ Neue Symfony-App als **Freelancer-Pro**: Verwaltung von **Kunden → Projekten �
 1. Symfony-Skeleton + Security + dunkler Login/Landing/Dashboard, end-to-end getestet
 2. Volles CRM (CRUD Kunde/Projekt/Aufgabe) + Rechnungserstellung aus Aufgaben + PDF-Befüllung, getestet
 3. **Legacy-Daten aus `achim-kraemer_com.sql` importiert**: 6 Kunden, 5 Projekte, 16 Aufgaben, 10 Rechnungen. Mapping: `time_entry`→Task (hours gesetzt ⇒ stündlich/price NULL; hours NULL ⇒ Festpreis), Rechnungsstatus `offen`→`verschickt`, `bezahlt`→`bezahlt`, Projekt der Rechnung aus verknüpften Tasks abgeleitet. Alle 10 Rechnungs-PDFs regeneriert; Summen stimmen exakt
+4. **E-Mail-Signaturen** (15.09.2026): Verwaltung unter „Signaturen“, Text/HTML-Editor wie im Portal, Vorgabe je Rechnungsvorlage, Signatur je Rechnung (Erstellen + Rechnungsseite), Versand mit Signatur (Text- und HTML-Teil, eingebettete Bilder). Migration `Version20260915102436`. Tests: `tests/Controller/SignatureFlowTest.php`, `tests/Service/{HtmlToText,MailBody,InvoiceMailer}Test.php`, `tests/Entity/MailSignatureTest.php`
 
 ## Git / Secrets (aktueller Stand)
 - Remotes: **`origin`** = GitHub (`git@github.com:achim-kraemer-com/freelancer-achim-kraemer.com.git`), **`main`** = Deploy-Server (SSH)

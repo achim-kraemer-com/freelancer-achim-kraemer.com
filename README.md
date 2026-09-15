@@ -18,16 +18,28 @@ Verwaltet **Kunden → Projekte → Aufgaben** und erstellt daraus **Rechnungen 
   oder **Mirwena** (`config/pdfs/Musterrechnung-Mirwena.pdf` mit dem Logo von mirwena.de,
   erzeugt durch `app:build-mirwena-template`).
   Status: **erstellt → verschickt → bezahlt**.
+- **E-Mail-Signatur** – steht unter der E-Mail, mit der eine Rechnung verschickt wird
+  (nach dem Vorbild des Portals). Als **reiner Text** (hinter der Trennzeile `-- `) oder als
+  **HTML** mit Formatierung, Links und Bildern – etwa aus einem Signatur-Generator per
+  „Signatur kopieren" in den visuellen Editor eingefügt. Eine HTML-Signatur macht die
+  Rechnungsmail zur HTML-Mail (Textteil bleibt erhalten, eingebettete Bilder gehen als
+  `cid:`-Anhänge mit). Jede Signatur kann **Vorgabe für eine Rechnungsvorlage** sein;
+  **jede Rechnung merkt sich ihre Signatur** und lässt sich auf eine andere umstellen.
 
 ### Rechnungs-Workflow
 
 1. Kunde anlegen → Projekt anlegen → Aufgaben mit Stunden oder Festpreis erfassen.
 2. Auf der Projektseite offene Aufgaben auswählen, Rechnungsvorlage (Achim Krämer / Mirwena)
-   wählen → **„Rechnung aus Auswahl erstellen"**.
+   und E-Mail-Signatur wählen (die Vorgabe der Vorlage ist vorausgewählt) →
+   **„Rechnung aus Auswahl erstellen"**.
 3. Das befüllte PDF wird unter `var/invoices/` erzeugt und ist über die Rechnung
    herunterladbar; abgerechnete Aufgaben werden gesperrt.
-4. Rechnungsstatus auf **verschickt** / **bezahlt** setzen. Beim Löschen einer
-   Rechnung werden die Aufgaben wieder als offen freigegeben.
+4. Auf der Rechnungsseite ggf. die Signatur ändern (mit Vorschau) und die Rechnung
+   **per E-Mail senden** – Anschreiben, Signatur und PDF-Anhang. Rechnungsstatus auf
+   **verschickt** / **bezahlt** setzen. Beim Löschen einer Rechnung werden die Aufgaben
+   wieder als offen freigegeben.
+
+Signaturen werden unter **Signaturen** (`/admin/signature`) verwaltet.
 
 Der CRM-Bereich liegt unter `/admin` und erfordert `ROLE_ADMIN`.
 

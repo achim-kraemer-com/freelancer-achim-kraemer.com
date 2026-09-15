@@ -17,7 +17,7 @@
             <a href="{{ path('admin_invoice_download', {id: invoice.id}) }}" class="btn btn-ghost">PDF herunterladen</a>
             {% if invoice.customer.email %}
                 <form method="post" action="{{ path('admin_invoice_send', {id: invoice.id}) }}" class="inline-form"
-                      onsubmit="return confirm('Rechnung per E-Mail an {{ invoice.customer.email }} senden?');">
+                      onsubmit="return confirm('Rechnung per E-Mail an {{ invoice.customer.email|e('js') }} senden?{{ invoice.signature ? (' Signatur: ' ~ invoice.signature.label)|e('js') : ' Ohne Signatur.' }}');">
                     <input type="hidden" name="_token" value="{{ csrf_token('send' ~ invoice.id) }}">
                     <button class="btn btn-primary">Per E-Mail senden</button>
                 </form>
@@ -33,6 +33,7 @@
                 <dt>Datum</dt><dd>{{ invoice.invoiceDate|date('d.m.Y') }}</dd>
                 <dt>Betrag</dt><dd>{{ invoice.totalAmount|number_format(2, ',', '.') }} €</dd>
                 <dt>Vorlage</dt><dd>{{ invoice.template.label }}</dd>
+                <dt>Signatur</dt><dd>{% if invoice.signature %}{{ invoice.signature.label }}{% else %}<span class="muted">keine</span>{% endif %}</dd>
                 <dt>Fällig</dt>
                 <dd>
                     {% if invoice.dueDate %}
@@ -65,6 +66,52 @@
                 {% if invoice.project %}<dt>Projekt</dt><dd><a href="{{ path('admin_project_show', {id: invoice.project.id}) }}">{{ invoice.project.name }}</a></dd>{% endif %}
             </dl>
         </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head"><h2>E-Mail-Signatur</h2></div>
+        {% if signatures is empty %}
+            <div class="empty">
+                Noch keine Signatur angelegt – die Rechnung wird ohne Signatur versendet.
+                <div style="margin-top:1rem"><a href="{{ path('admin_signature_new') }}" class="btn btn-ghost btn-sm">Signatur anlegen</a></div>
+            </div>
+        {% else %}
+            {# The signature is a part of its own and is only put under the
+               text when sending – so an HTML signature never has to live in a
+               textarea. The preview shows the chosen one; the script follows
+               the selection, without it the stored choice stays visible. #}
+            <form method="post" action="{{ path('admin_invoice_signature', {id: invoice.id}) }}" class="signature-choice" data-signatur-wahl>
+                <input type="hidden" name="_token" value="{{ csrf_token('signature' ~ invoice.id) }}">
+                <div class="form-row">
+                    <label for="signature">Signatur</label>
+                    <select id="signature" name="signature">
+                        <option value="">Keine</option>
+                        {% for signature in signatures %}
+                            <option value="{{ signature.id }}" {{ invoice.signature and invoice.signature.id == signature.id ? 'selected' }}>{{ signature.label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% for signature in signatures %}
+                        {# Preview per signature; HTML is already defused by the MailSanitizer.
+                           Signatures are designed for light mail clients – hence on white. #}
+                        <div class="signature-preview message-html" data-signatur-vorschau="{{ signature.id }}"
+                             {{ not (invoice.signature and invoice.signature.id == signature.id) ? 'hidden' }}>
+                            {% if signature.isHtml %}
+                                {{ previews[signature.id]|raw }}
+                            {% else %}
+                                <pre class="signature-plain">{{ signature.asBlock }}</pre>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <span class="form-help">
+                        Kommt beim Versand unter den Text der E-Mail.
+                        Angelegt werden Signaturen unter <a href="{{ path('admin_signature_index') }}">Signaturen</a>.
+                    </span>
+                </div>
+                <div class="head-actions">
+                    <button class="btn btn-ghost btn-sm">Signatur speichern</button>
+                </div>
+            </form>
+        {% endif %}
     </div>
 
     {% if invoice.dispatches is not empty %}
@@ -143,4 +190,24 @@
         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ invoice.id) }}">
         <button class="btn btn-danger btn-sm">Rechnung löschen</button>
     </form>
+
+    <script>
+        // The preview follows the selection. Without the script the preview of
+        // the stored signature stays – the selection itself works regardless.
+        (function () {
+            var wahl = document.querySelector('[data-signatur-wahl]');
+
+            if (!wahl) {
+                return;
+            }
+
+            var auswahl = wahl.querySelector('select');
+
+            auswahl.addEventListener('change', function () {
+                wahl.querySelectorAll('[data-signatur-vorschau]').forEach(function (vorschau) {
+                    vorschau.hidden = vorschau.dataset.signaturVorschau !== auswahl.value;
+                });
+            });
+        })();
+    </script>
 {% endblock %}

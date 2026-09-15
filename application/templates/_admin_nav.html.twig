@@ -7,6 +7,7 @@
         <div class="links">
             <a href="{{ path('admin_customer_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_customer' or app.request.attributes.get('_route') starts with 'admin_project' or app.request.attributes.get('_route') starts with 'admin_task' ? 'active' }}">Kunden</a>
             <a href="{{ path('admin_invoice_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_invoice' ? 'active' }}">Rechnungen</a>
+            <a href="{{ path('admin_signature_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_signature' ? 'active' }}">Signaturen</a>
             <a href="{{ path('admin_time_tracking_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_time_tracking' ? 'active' }}">Zeiterfassung</a>
             <a href="{{ path('admin_user_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_user' ? 'active' }}">Benutzer</a>
         </div>

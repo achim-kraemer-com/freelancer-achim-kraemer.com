@@ -1,0 +1,46 @@
+{{ form_start(form, {attr: {novalidate: 'novalidate', autocomplete: 'off'}}) }}
+    {{ form_errors(form) }}
+    <div class="form-grid">
+        <div class="form-row">
+            {{ form_label(form.label) }}{{ form_widget(form.label) }}
+            <span class="form-help">{{ form_help(form.label) }}</span>{{ form_errors(form.label) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.defaultForTemplate) }}{{ form_widget(form.defaultForTemplate) }}
+            <span class="form-help">{{ form_help(form.defaultForTemplate) }}</span>{{ form_errors(form.defaultForTemplate) }}
+        </div>
+        <div class="form-row full radio-choices">
+            {{ form_label(form.format) }}{{ form_widget(form.format) }}
+            <span class="form-help">{{ form_help(form.format) }}</span>{{ form_errors(form.format) }}
+        </div>
+
+        {# With HTML a visual editor takes the place of the textarea: what you
+           paste stays formatted – including a signature from the generator,
+           whose "Signatur kopieren" only puts HTML on the clipboard. The
+           textarea below is then the source and remains the field that is
+           submitted. Without the script it simply stays open. #}
+        <div class="full" data-signatur-editor>
+            <div class="signatur-werkzeuge" data-werkzeuge hidden>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="bold" title="Fett"><b>F</b></button>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="italic" title="Kursiv"><i>K</i></button>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="underline" title="Unterstrichen"><u>U</u></button>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="link" title="Link einfügen">Link</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="bild" title="Bild von einer Adresse einfügen">Bild</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-befehl="removeFormat" title="Formatierung entfernen">Format löschen</button>
+                <span class="spacer"></span>
+                <button type="button" class="btn btn-ghost btn-sm" data-quelltext aria-pressed="false">Quelltext</button>
+            </div>
+            <div class="signatur-editor message-html" data-editor contenteditable="true" hidden
+                 aria-label="Signatur bearbeiten"></div>
+            <div class="form-row">
+                {{ form_label(form.text) }}{{ form_widget(form.text) }}
+                <span class="form-help">{{ form_help(form.text) }}</span>{{ form_errors(form.text) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ submit_label|default('Speichern') }}</button>
+        <a href="{{ path('admin_signature_index') }}" class="btn btn-ghost">Abbrechen</a>
+    </div>
+{{ form_end(form) }}
