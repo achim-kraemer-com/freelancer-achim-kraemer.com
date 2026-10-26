@@ -1,0 +1,81 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+# Das Symfony-Projekt liegt im Unterordner application/.
+defaults:
+    run:
+        working-directory: application
+
+jobs:
+    tests:
+        name: PHPUnit
+        runs-on: ubuntu-latest
+
+        # Die Funktionstests gehen an die Datenbank, also braucht CI eine —
+        # dieselbe Version wie lokal und auf dem Server.
+        services:
+            mariadb:
+                image: mariadb:10.6
+                env:
+                    MARIADB_ROOT_PASSWORD: root
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="healthcheck.sh --connect --innodb_initialized"
+                    --health-interval=5s
+                    --health-timeout=5s
+                    --health-retries=20
+
+        env:
+            # Echte Umgebungsvariablen gewinnen gegen .env.test, wo der Host auf
+            # den Docker-Service "db" zeigt. Den Suffix _test haengt
+            # config/packages/doctrine.yaml im test-Env selbst an, die Datenbank
+            # legt der naechste Schritt an — deshalb root: das Image vergibt dem
+            # symfony-Benutzer keine Rechte an symfony_test.
+            DATABASE_URL: "mysql://root:root@127.0.0.1:3306/symfony?serverVersion=10.6.4-MariaDB&charset=utf8mb4"
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: PHP einrichten
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.5'
+                  extensions: ctype, iconv, intl, mbstring, pdo_mysql, gd, zip
+                  coverage: none
+
+            - name: Abhaengigkeiten installieren
+              run: composer install --no-interaction --no-progress
+
+            - name: Testdatenbank anlegen
+              run: |
+                  php bin/console --env=test doctrine:database:create --if-not-exists
+                  php bin/console --env=test doctrine:migrations:migrate --no-interaction
+
+            - name: PHPUnit
+              run: php vendor/bin/phpunit
+
+    audit:
+        name: composer audit
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: PHP einrichten
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.5'
+                  coverage: none
+
+            # Liest composer.lock, braucht also kein vendor/.
+            - name: Bekannte Schwachstellen in den Abhaengigkeiten
+              run: composer audit --no-interaction
