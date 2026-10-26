@@ -43,7 +43,7 @@ jobs:
             DATABASE_URL: "mysql://root:root@127.0.0.1:3306/symfony?serverVersion=10.6.4-MariaDB&charset=utf8mb4"
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - name: PHP einrichten
               uses: shivammathur/setup-php@v2
@@ -68,7 +68,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - name: PHP einrichten
               uses: shivammathur/setup-php@v2
