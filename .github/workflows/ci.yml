@@ -76,6 +76,7 @@ jobs:
                   php-version: '8.5'
                   coverage: none
 
-            # Liest composer.lock, braucht also kein vendor/.
+            # --locked prueft composer.lock; ohne das verlangt audit ein
+            # installiertes vendor/.
             - name: Bekannte Schwachstellen in den Abhaengigkeiten
-              run: composer audit --no-interaction
+              run: composer audit --locked --no-interaction
