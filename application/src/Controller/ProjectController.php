@@ -9,7 +9,6 @@ use App\Entity\Invoice;
 use App\Entity\Project;
 use App\Enum\InvoiceTemplate;
 use App\Form\ProjectType;
-use App\Repository\InvoiceRepository;
 use App\Repository\MailSignatureRepository;
 use App\Repository\TaskRepository;
 use App\Service\InvoicePdfBuilder;
@@ -99,7 +98,6 @@ class ProjectController extends AbstractController
         Project $project,
         Request $request,
         TaskRepository $taskRepository,
-        InvoiceRepository $invoiceRepository,
         MailSignatureRepository $signatureRepository,
         EntityManagerInterface $em,
         InvoicePdfBuilder $pdfBuilder,
@@ -119,8 +117,10 @@ class ProjectController extends AbstractController
         }
 
         $customer    = $project->getCustomer();
-        $invoiceNo   = \date('y').'-'.($project->getId() + 1000).'-'.($invoiceRepository->countForProject($project->getId()) + 1);
         $invoiceDate = new \DateTime();
+        // Takes the project's counter one step on, so the number stays unique
+        // even if an invoice is deleted later.
+        $invoiceNo = $project->nextInvoiceNumber($invoiceDate);
 
         $invoice = new Invoice();
         $invoice->setNumber($invoiceNo);

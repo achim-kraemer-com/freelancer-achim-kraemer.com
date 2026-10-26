@@ -60,16 +60,6 @@ class InvoiceRepository extends ServiceEntityRepository
         return $this->paginateQuery($qb, $page, $perPage);
     }
 
-    public function countForProject(int $projectId): int
-    {
-        return (int) $this->createQueryBuilder('i')
-            ->select('COUNT(i.id)')
-            ->andWhere('i.project = :project')
-            ->setParameter('project', $projectId)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     /**
      * Invoices that are not yet paid (status "erstellt" or "verschickt"),
      * most recent first.

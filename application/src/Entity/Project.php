@@ -14,6 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 class Project
 {
+    /** Added to the project id so the middle part of an invoice number has four digits. */
+    private const int INVOICE_NUMBER_OFFSET = 1000;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -32,6 +35,13 @@ class Project
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
+
+    /**
+     * How many invoice numbers this project has handed out so far. Only ever
+     * grows – see {@see nextInvoiceNumber()}.
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $invoiceCounter = 0;
 
     /**
      * @var Collection<int, Task>
@@ -156,5 +166,30 @@ class Project
         }
 
         return $total;
+    }
+
+    public function getInvoiceCounter(): int
+    {
+        return $this->invoiceCounter;
+    }
+
+    /**
+     * Hands out the next invoice number for this project, as in "26-1003-4":
+     * two-digit year, project id offset to four digits, running number.
+     *
+     * The running number comes from a counter that only ever grows. Counting
+     * the invoices that exist instead would give the next invoice the number
+     * of a deleted one – and a number that has gone out to a customer must
+     * never come back on a different invoice. A deletion therefore leaves a
+     * gap, which is the lesser evil.
+     */
+    public function nextInvoiceNumber(\DateTimeInterface $date): string
+    {
+        return \sprintf(
+            '%s-%d-%d',
+            $date->format('y'),
+            (int) $this->id + self::INVOICE_NUMBER_OFFSET,
+            ++$this->invoiceCounter,
+        );
     }
 }
