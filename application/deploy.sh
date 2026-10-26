@@ -18,8 +18,14 @@ php bin/console doctrine:migrations:migrate --no-interaction
 # cache:clear waermt den Cache gleich mit auf.
 php bin/console cache:clear
 
-# Die Web-Requests lesen ihre Umgebung aus .env.local, nicht aus dem Export
-# oben — fehlt dort APP_ENV, laeuft die Live-App im dev-Modus.
-if ! grep -qs '^APP_ENV=prod' .env.local; then
-    echo "WARNUNG: .env.local setzt kein APP_ENV=prod — bitte auf dem Server pruefen." >&2
+# Die Web-Requests lesen ihre Umgebung aus .env/.env.local oder aus der
+# vHost-Konfiguration, nicht aus dem Export oben. Ohne die exportierten
+# Variablen genau so aufloesen lassen wie beim Request und nachsehen, was
+# dabei herauskommt — ein grep auf .env.local allein gibt falschen Alarm.
+WEB_ENV=$(unset APP_ENV APP_DEBUG; php -r \
+    'require "vendor/autoload.php"; (new Symfony\Component\Dotenv\Dotenv())->bootEnv(".env"); echo $_SERVER["APP_ENV"];' \
+    2>/dev/null || echo unbekannt)
+
+if [ "$WEB_ENV" != "prod" ]; then
+    echo "WARNUNG: Die Web-App laeuft als \"$WEB_ENV\", nicht als prod." >&2
 fi
