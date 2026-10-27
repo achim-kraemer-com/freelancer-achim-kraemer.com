@@ -50,7 +50,11 @@ final class InvoiceFlowTest extends WebTestCase
         $projectId = $this->projectWith([['name' => 'Beratung', 'hours' => '1.00']]);
         $invoice   = $this->createInvoice($client, $projectId, ['Beratung']);
 
-        $expected = (clone $invoice->getInvoiceDate())->modify('+'.Invoice::DEFAULT_PAYMENT_TERM_DAYS.' days');
+        $invoiceDate = $invoice->getInvoiceDate();
+        self::assertInstanceOf(\DateTimeInterface::class, $invoiceDate);
+
+        $expected = (new \DateTimeImmutable($invoiceDate->format('Y-m-d')))
+            ->modify('+'.Invoice::DEFAULT_PAYMENT_TERM_DAYS.' days');
 
         self::assertSame($expected->format('Y-m-d'), $invoice->getDueDate()?->format('Y-m-d'));
     }
@@ -77,7 +81,15 @@ final class InvoiceFlowTest extends WebTestCase
         $client->request('POST', '/admin/task/'.$taskId.'/delete', ['_token' => $deleteToken]);
         self::assertResponseRedirects('/admin/project/'.$projectId);
 
-        self::assertNotNull($this->task('Beratung'), 'Die abgerechnete Aufgabe darf nicht gelöscht worden sein.');
+        // Ueber das Repository nachsehen – der Helfer oben wuerde die Aufgabe
+        // nie als fehlend melden, sondern am fehlgeschlagenen assertNotNull
+        // scheitern und damit die eigentliche Aussage verschleiern.
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->clear();
+        self::assertNotNull(
+            $em->getRepository(Task::class)->find($taskId),
+            'Die abgerechnete Aufgabe darf nicht gelöscht worden sein.',
+        );
     }
 
     public function testDeletingTheInvoiceReleasesItsTasksAndRemovesThePdf(): void

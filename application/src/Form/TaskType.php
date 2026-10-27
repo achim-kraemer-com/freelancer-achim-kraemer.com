@@ -16,6 +16,9 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @extends AbstractType<Task>
+ */
 class TaskType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -50,7 +53,7 @@ class TaskType extends AbstractType
 
         // Require at least one of hours / price.
         $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
-            /** @var Task $task */
+            /** @var Task|null $task */
             $task = $event->getData();
             if (null === $task) {
                 return;

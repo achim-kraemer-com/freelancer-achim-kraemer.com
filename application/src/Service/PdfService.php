@@ -19,7 +19,7 @@ class PdfService
     }
 
     /**
-     * @param array<int, list<array{x: float, y: float, text: string, B?: string, R?: string}>> $textOverlay
+     * @param array<int, list<array{x: int|float, y: int|float, text: string, B?: string, R?: string}>> $textOverlay
      *        keyed by page number; each entry positions a piece of text (mm).
      *
      * @return string the absolute path of the generated PDF

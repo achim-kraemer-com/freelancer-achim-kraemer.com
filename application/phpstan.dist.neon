@@ -1,0 +1,40 @@
+includes:
+    # Ohne den extension-installer (ein Composer-Plugin, das erst in
+    # allow-plugins freigeschaltet werden muesste) binden wir die Erweiterungen
+    # direkt ein.
+    #
+    # Von phpstan-doctrine nur die Typ-Inferenz (extension.neon), nicht die
+    # Stilregeln: deren "type mapping mismatch" trifft jede von MakerBundle
+    # erzeugte Entity, weil die Felder als ?string angelegt sind und die Spalte
+    # NOT NULL ist. Das waere ein eigener, grosser Umbau und keine Fehlersuche.
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-symfony/rules.neon
+
+parameters:
+    # Level 6 ist der hoechste Stand, der hier ohne Baseline sauber ist. Ab 7
+    # bestehen die Funde fast nur noch aus Ungenauigkeiten fremder Stubs
+    # (DomCrawler, FPDI) statt aus Aussagen ueber diesen Code. Hochziehen geht
+    # jederzeit — dann aber bewusst und mit Aufraeumen statt mit einer Baseline,
+    # die alles unter den Teppich kehrt.
+    level: 6
+
+    paths:
+        - src
+        - tests
+
+    symfony:
+        # Loest Service-Typen auf. Die Datei entsteht beim Aufwaermen des
+        # dev-Caches, in CI also vor der Analyse.
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
+
+    ignoreErrors:
+        # Die DomCrawler-Stubs geben fuer $form['feld'] einen Sammeltyp zurueck;
+        # zur Laufzeit ist es je nach Feldart ein einzelnes FormField oder ein
+        # Array davon. Im Funktionstest laesst sich das nicht aufloesen.
+        -
+            identifier: method.nonObject
+            path: tests/Controller/SignatureFlowTest.php

@@ -80,3 +80,29 @@ jobs:
             # installiertes vendor/.
             - name: Bekannte Schwachstellen in den Abhaengigkeiten
               run: composer audit --locked --no-interaction
+
+    phpstan:
+        name: PHPStan
+        runs-on: ubuntu-latest
+
+        # Braucht keine Datenbank: der Kernel wird nur gebootet, nicht verbunden.
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: PHP einrichten
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.5'
+                  extensions: ctype, iconv, intl, mbstring, pdo_mysql, gd, zip
+                  coverage: none
+
+            - name: Abhaengigkeiten installieren
+              run: composer install --no-interaction --no-progress
+
+            # Die Symfony-Erweiterung liest die Service-Typen aus dem
+            # Container-XML, das erst beim Aufwaermen entsteht.
+            - name: dev-Cache aufwaermen
+              run: php bin/console cache:warmup
+
+            - name: PHPStan
+              run: php vendor/bin/phpstan analyse --no-progress
