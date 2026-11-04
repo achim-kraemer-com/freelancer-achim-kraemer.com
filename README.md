@@ -43,6 +43,37 @@ Signaturen werden unter **Signaturen** (`/admin/signature`) verwaltet.
 
 Der CRM-Bereich liegt unter `/admin` und erfordert `ROLE_ADMIN`.
 
+### Kunde aus einem Portal-Kontakt
+
+Auf der Kundenliste führt **„Aus Portal-Kontakt"** (`/admin/customer/portal`) ins
+Adressbuch von [portal.achim-kraemer.com](https://portal.achim-kraemer.com). Die
+Kontakte kommen lesend über dessen Schnittstelle `GET /api/kontakte` (Token im
+Header `X-Api-Token`); gespeichert wird hier nichts davon. **„Übernehmen"** öffnet
+das Formular *Neuer Kunde* vorbefüllt – gespeichert wird erst nach Prüfung, denn
+drei Felder sind geraten:
+
+| Portal                         | Hier                        | Regel                                                        |
+|--------------------------------|-----------------------------|--------------------------------------------------------------|
+| ein Namensfeld                 | Vorname + Nachname          | letztes Wort ist der Nachname, Namenszusätze („von", „van der") gehören dazu; „Muster, Max" wird am Komma getrennt; ein einzelnes Wort wird zum Nachnamen |
+| Straße mit Hausnummer          | Straße + Hausnummer         | nur eine Nummer **am Ende** wird abgetrennt („Musterweg 7", „Hauptstr. 5a", „Musterweg 7-9"). „Straße des 17. Juni" und „Musterweg 7, 2. OG" bleiben ganz |
+| Liste von Nummern ohne Art     | Telefon + Mobil             | Vorwahl entscheidet: 015/016/017 (auch als +49…) ist Mobil, alles andere Telefon |
+
+Mehrere E-Mail-Adressen: die erste gilt. **Notiz und Schlagworte** des Kontakts
+kommen nicht mit – dafür hat ein Kunde keine Felder, sie bleiben im Portal.
+
+Einzurichten in `application/.env.local`:
+
+```dotenv
+PORTAL_API_URL=https://portal.achim-kraemer.com
+PORTAL_API_TOKEN=…
+```
+
+Das Token erzeugt das Portal unter **Einstellungen → Profil** (es ist genau einmal
+zu sehen). Lokal zeigt die Vorgabe aus `.env` auf den Portal-Stack
+(`http://host.docker.internal:8096`). Fehlt das Token oder ist das Portal nicht
+erreichbar, sagt die Kontaktauswahl das in einem Satz – die Kundenverwaltung
+läuft unverändert weiter.
+
 ## Stack
 
 - **Symfony 8.1** (PHP 8.5)
@@ -111,6 +142,9 @@ Wichtige Dateien:
 - `application/config/packages/security.yaml` – Firewall & Access-Control
 - `application/templates/` – `base.html.twig`, `home/`, `security/login.html.twig`, `dashboard/`
 - `application/public/css/app.css` – Design-System (Farben, Buttons, Glass-Cards)
+- `application/src/Service/PortalContacts.php` – liest das Adressbuch des Portals;
+  `PortalContact.php` (ein Kontakt), `ContactToCustomer.php` (Kontakt → Kunde),
+  `PortalError.php` (Portal weg / Token falsch / Antwort kaputt)
 - `docker/docker-compose.yml` – lokale Infrastruktur (Projektname `freelancer-ak`)
 
 ## Helfer-Skripte (`bin/`)

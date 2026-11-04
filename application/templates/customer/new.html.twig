@@ -6,6 +6,15 @@
     <div class="breadcrumb"><a href="{{ path('admin_customer_index') }}">Kunden</a> / Neu</div>
     <div class="page-head"><h1>Neuer Kunde</h1></div>
 
+    {% if contact %}
+        <div class="alert alert-info">
+            Übernommen aus dem Portal-Kontakt <strong>{{ contact.label }}</strong>.
+            Name sowie Straße und Hausnummer sind geraten, die Nummern nach Vorwahl auf
+            Telefon und Mobil verteilt — bitte prüfen. Notiz und Schlagworte des Kontakts
+            kommen nicht mit.
+        </div>
+    {% endif %}
+
     <div class="card form-card">
         {% include 'customer/_form.html.twig' with { cancel_path: path('admin_customer_index') } %}
     </div>

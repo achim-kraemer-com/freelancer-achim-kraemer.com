@@ -1,0 +1,76 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Portal-Kontakte · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_customer_index') }}">Kunden</a> / Aus Portal-Kontakt</div>
+    <div class="page-head">
+        <div>
+            <h1>Kontakt aus dem Portal</h1>
+            <p class="sub">Aus dem Adressbuch von portal.achim-kraemer.com einen Kunden anlegen.</p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_customer_new') }}" class="btn btn-ghost">Leeres Formular</a>
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="get" action="{{ path('admin_customer_portal') }}" class="list-toolbar">
+        <input type="search" name="q" value="{{ q }}" placeholder="Suche nach Name, Firma, Ort, E-Mail oder Nummer …">
+        <button class="btn btn-ghost btn-sm">Suchen</button>
+        {% if q %}<a href="{{ path('admin_customer_portal') }}" class="btn btn-ghost btn-sm">Zurücksetzen</a>{% endif %}
+    </form>
+
+    {% if contacts is empty %}
+        {% if not error %}
+            <div class="empty">
+                {{ q ? 'Kein Kontakt passt zu „' ~ q ~ '“.' : 'Das Adressbuch des Portals ist leer.' }}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Firma / Name</th>
+                        <th>E-Mail</th>
+                        <th>Telefon</th>
+                        <th>Anschrift</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contact in contacts %}
+                        <tr>
+                            <td>
+                                {{ contact.organisation ?: contact.name }}
+                                {% if contact.organisation %}<div class="muted">{{ contact.name }}</div>{% endif %}
+                                {% for tag in contact.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
+                            </td>
+                            <td class="muted">{{ contact.primaryEmail ?: '—' }}</td>
+                            <td class="muted">{{ contact.phones|first|default('—') }}</td>
+                            <td class="muted">
+                                {%- if contact.street or contact.city -%}
+                                    {{ contact.street }}
+                                    {%- if contact.postalCode or contact.city %}<div>{{ contact.postalCode }} {{ contact.city }}</div>{% endif -%}
+                                {%- else -%}
+                                    —
+                                {%- endif -%}
+                            </td>
+                            <td class="num">
+                                <a href="{{ path('admin_customer_new', {kontakt: contact.id}) }}" class="btn btn-ghost btn-sm">Übernehmen</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if truncated %}
+            <p class="sub">Es werden die ersten {{ limit }} Kontakte gezeigt. Wer nicht dabei ist, lässt sich über die Suche finden.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

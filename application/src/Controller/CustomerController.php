@@ -8,6 +8,9 @@ use App\Entity\Customer;
 use App\Entity\Invoice;
 use App\Form\CustomerType;
 use App\Repository\CustomerRepository;
+use App\Service\ContactToCustomer;
+use App\Service\PortalContacts;
+use App\Service\PortalError;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +22,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class CustomerController extends AbstractController
 {
+    /** How many portal contacts the picker shows at once. */
+    private const int PORTAL_LIMIT = 100;
+
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(Request $request, CustomerRepository $customers): Response
     {
@@ -34,10 +40,31 @@ class CustomerController extends AbstractController
     }
 
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $em, PortalContacts $portal): Response
     {
         $customer = new Customer();
-        $form     = $this->createForm(CustomerType::class, $customer);
+        $contact  = null;
+
+        // A contact from the portal fills the form in advance – only when
+        // the page is opened, not when it comes back: what the user has
+        // corrected in between must not be overwritten by the guess again.
+        $contactId = $request->query->getInt('kontakt');
+
+        if ($contactId > 0 && !$request->isMethod('POST')) {
+            try {
+                $contact = $portal->find($contactId);
+
+                if ($contact === null) {
+                    $this->addFlash('error', 'Diesen Kontakt kennt das Portal nicht (mehr).');
+                } else {
+                    $customer = ContactToCustomer::convert($contact);
+                }
+            } catch (PortalError $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        $form = $this->createForm(CustomerType::class, $customer);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -48,7 +75,41 @@ class CustomerController extends AbstractController
             return $this->redirectToRoute('admin_customer_show', ['id' => $customer->getId()]);
         }
 
-        return $this->render('customer/new.html.twig', ['form' => $form]);
+        return $this->render('customer/new.html.twig', [
+            'form'    => $form,
+            'contact' => $contact,
+        ]);
+    }
+
+    /**
+     * The portal's address book, to pick from.
+     *
+     * Only a list with a search field: picking leads to the "new customer"
+     * form, pre-filled. Nothing is saved here, so a portal that is down or a
+     * token that is missing costs a sentence on the page and not an error.
+     */
+    #[Route('/portal', name: 'portal', methods: ['GET'])]
+    public function portal(Request $request, PortalContacts $portal): Response
+    {
+        $q        = trim((string) $request->query->get('q'));
+        $contacts = [];
+        $error    = null;
+
+        try {
+            $contacts = $portal->search($q ?: null, self::PORTAL_LIMIT);
+        } catch (PortalError $e) {
+            $error = $e->getMessage();
+        }
+
+        return $this->render('customer/portal.html.twig', [
+            'contacts'  => $contacts,
+            'q'         => $q,
+            'error'     => $error,
+            'limit'     => self::PORTAL_LIMIT,
+            // A full page means there may well be more behind it. Saying so
+            // beats letting someone conclude a contact is not in the portal.
+            'truncated' => \count($contacts) === self::PORTAL_LIMIT,
+        ]);
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
