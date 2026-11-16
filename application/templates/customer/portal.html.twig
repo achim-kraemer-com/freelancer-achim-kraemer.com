@@ -31,8 +31,8 @@
             </div>
         {% endif %}
     {% else %}
-        <div class="table-wrap">
-            <table class="data">
+        <div class="table-wrap karten">
+            <table class="data karten-tabelle">
                 <thead>
                     <tr>
                         <th>Firma / Name</th>
@@ -45,14 +45,14 @@
                 <tbody>
                     {% for contact in contacts %}
                         <tr>
-                            <td>
+                            <td class="titel">
                                 {{ contact.organisation ?: contact.name }}
                                 {% if contact.organisation %}<div class="muted">{{ contact.name }}</div>{% endif %}
                                 {% for tag in contact.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
                             </td>
-                            <td class="muted">{{ contact.primaryEmail ?: '—' }}</td>
-                            <td class="muted">{{ contact.phones|first|default('—') }}</td>
-                            <td class="muted">
+                            <td class="muted" data-label="E-Mail">{{ contact.primaryEmail ?: '—' }}</td>
+                            <td class="muted" data-label="Telefon">{{ contact.phones|first|default('—') }}</td>
+                            <td class="muted" data-label="Anschrift">
                                 {%- if contact.street or contact.city -%}
                                     {{ contact.street }}
                                     {%- if contact.postalCode or contact.city %}<div>{{ contact.postalCode }} {{ contact.city }}</div>{% endif -%}
@@ -60,7 +60,7 @@
                                     —
                                 {%- endif -%}
                             </td>
-                            <td class="num">
+                            <td class="num aktionen">
                                 <a href="{{ path('admin_customer_new', {kontakt: contact.id}) }}" class="btn btn-ghost btn-sm">Übernehmen</a>
                             </td>
                         </tr>

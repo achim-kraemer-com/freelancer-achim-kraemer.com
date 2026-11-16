@@ -22,6 +22,11 @@
     </div>
 </nav>
 
+{# Auf dem Telefon stehen die Bereiche nicht oben, sondern unten am Daumen:
+   Die Links dieser Leiste blendet app.css dort aus und zeigt stattdessen die
+   untere Leiste. #}
+{{ include('_mobile_tabs.html.twig') }}
+
 {# Die Fenster hinter Lupe und „A" – auf jeder Seite mit dieser Leiste
    erreichbar, auch mit ⌘K bzw. Strg+K. #}
 {% if is_granted('ROLE_ADMIN') %}

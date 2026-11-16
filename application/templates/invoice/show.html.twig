@@ -117,16 +117,16 @@
     {% if invoice.dispatches is not empty %}
         <div class="section">
             <div class="section-head"><h2>E-Mail-Versand</h2></div>
-            <div class="table-wrap">
-                <table class="data">
+            <div class="table-wrap karten">
+                <table class="data karten-tabelle">
                     <thead>
                         <tr><th>Gesendet am</th><th>Empfänger</th></tr>
                     </thead>
                     <tbody>
                         {% for dispatch in invoice.dispatches %}
                             <tr>
-                                <td>{{ dispatch.sentAt|date('d.m.Y H:i') }} Uhr</td>
-                                <td class="muted">{{ dispatch.recipient }}</td>
+                                <td class="titel">{{ dispatch.sentAt|date('d.m.Y H:i') }} Uhr</td>
+                                <td class="muted" data-label="Empfänger">{{ dispatch.recipient }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -137,18 +137,18 @@
 
     <div class="section">
         <div class="section-head"><h2>Positionen</h2></div>
-        <div class="table-wrap">
-            <table class="data">
+        <div class="table-wrap karten">
+            <table class="data karten-tabelle">
                 <thead>
                     <tr><th style="width:2rem;">#</th><th>Aufgabe</th><th class="num">Stunden</th><th class="num">Kosten (€)</th></tr>
                 </thead>
                 <tbody>
                     {% for task in invoice.tasks %}
                         <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ task.name }}{% if task.description %}<div class="muted">{{ task.description|nl2br }}</div>{% endif %}</td>
-                            <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
-                            <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                            <td data-label="Position">{{ loop.index }}</td>
+                            <td class="titel">{{ task.name }}{% if task.description %}<div class="muted">{{ task.description|nl2br }}</div>{% endif %}</td>
+                            <td class="num" data-label="Stunden">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                            <td class="num" data-label="Kosten (€)">{{ task.cost|number_format(2, ',', '.') }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

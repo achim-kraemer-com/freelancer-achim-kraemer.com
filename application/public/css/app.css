@@ -895,3 +895,192 @@ fieldset legend {
     .suche-treffer .treffer-seite { display: none; }
     .assistant-input { flex-direction: column; align-items: stretch; }
 }
+
+/* ==========================================================================
+   Das Telefon – untere Navigationsleiste und Listen als Karten
+   Nach dem Vorbild des Portals (portal.achim-kraemer.com, app.css).
+   ========================================================================== */
+.symbol { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.2em; flex: none; }
+
+/* Die untere Leiste gibt es nur auf schmalen Bildschirmen. */
+.mobile-tabs { display: none; }
+
+/* Dazwischen – Tablet im Hochformat: Die volle Leiste braucht gut 1.000
+   Pixel. Darunter rückt sie zusammen, damit aus einer Zeile nicht drei
+   werden; die untere Leiste kommt erst auf dem Telefon. */
+@media (max-width: 1024px) {
+    .admin-nav { gap: 0.9rem; padding: 0.8rem 1.25rem; }
+    .admin-nav .links { gap: 0.85rem; font-size: 0.92rem; }
+    .admin-nav .links .btn-sm { padding: 0.35rem 0.7rem; }
+}
+
+@media (max-width: 720px) {
+    /* ----------------------------------------------------------------------
+       Navigation: oben bleibt die Marke mit Lupe und „A", die Bereiche wandern
+       nach unten an den Daumen (templates/_mobile_tabs.html.twig).
+       ---------------------------------------------------------------------- */
+    .admin-nav { gap: 0.75rem; padding: 0.6rem 1rem; flex-wrap: nowrap; }
+    .admin-nav .brand { font-size: 0.95rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .admin-nav .links { display: none; }
+    .admin-nav .spacer { flex: 1; }
+
+    /* Unten ist die Leiste fest verankert; der Platz dafür steht hier. */
+    .admin-main { padding: 1.5rem 1rem 6rem; }
+    .dashboard { padding: 1.75rem 1rem 6rem; }
+
+    .mobile-tabs {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+        /* grid-auto-flow: column – die Leiste teilt sich gleichmäßig auf, egal
+           wie viele Einträge _mobile_tabs.html.twig liefert (fünf als Admin,
+           vier sonst). minmax(0, 1fr), damit ein langes Wort wie „Rechnungen"
+           seine Spalte nicht breiter macht als die übrigen. */
+        display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+        background: rgba(8, 11, 17, 0.94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid var(--border);
+        /* Fest verankert, darum greift der Abstand am body hier nicht. */
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+    }
+    .mobile-tabs > a, .mobile-tabs .mehr-menue > summary {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 0.2rem; padding: 0.45rem 0.15rem; min-height: 3.25rem;
+        color: var(--text-dim); font-weight: 600;
+        /* Fünf Spalten, und „Rechnungen" ist das längste Wort darin: Auf einem
+           schmalen Telefon wird die Schrift mit, sonst stünde dort
+           „Rechnunge". Ab gut 400 Pixel Breite bleibt sie bei 0.72rem. */
+        font-size: clamp(0.58rem, 2.9vw, 0.72rem);
+        min-width: 0; overflow: hidden; white-space: nowrap;
+    }
+    .mobile-tabs .symbol { width: 1.4rem; height: 1.4rem; vertical-align: 0; }
+    .mobile-tabs a.active, .mobile-tabs summary.active,
+    .mobile-tabs .mehr-menue[open] > summary { color: var(--accent); }
+
+    /* „Mehr": ein <details>, dessen Liste über der Leiste aufgeht. Es klappt
+       auch ohne JavaScript auf; navigation.js schließt es beim Tippen daneben. */
+    .mobile-tabs .mehr-menue { position: static; min-width: 0; }
+    .mobile-tabs .mehr-menue > summary { list-style: none; cursor: pointer; }
+    .mobile-tabs .mehr-menue > summary::-webkit-details-marker { display: none; }
+    .mobile-tabs .mehr-liste {
+        position: absolute; right: 0.75rem; bottom: calc(100% + 0.5rem);
+        min-width: 13rem; padding: 0.4rem;
+        display: grid; gap: 0.15rem;
+        background: var(--surface-2); border: 1px solid var(--border);
+        border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .mobile-tabs .mehr-liste a {
+        display: flex; align-items: center; gap: 0.75rem;
+        min-height: 2.75rem; padding: 0.5rem 0.75rem; border-radius: 0.6rem;
+        color: var(--text); font-size: 1rem; font-weight: 500; white-space: nowrap;
+    }
+    .mobile-tabs .mehr-liste a.active { color: var(--accent); background: rgba(255, 255, 255, 0.05); }
+    .mobile-tabs .mehr-liste .symbol { width: 1.25rem; height: 1.25rem; color: var(--text-muted); }
+    .mobile-tabs .mehr-liste a.active .symbol { color: var(--accent); }
+
+    /* Die Fenster hinter Lupe und „A" nutzen den Schirm ganz aus. */
+    dialog.admin-fenster {
+        width: calc(100vw - 1.5rem);
+        margin-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top, 0px));
+    }
+
+    /* ----------------------------------------------------------------------
+       Seitenkopf, Filterzeile, Spalten
+       ---------------------------------------------------------------------- */
+    .page-head { margin-bottom: 1.25rem; }
+    .head-actions { width: 100%; }
+    .head-actions .btn { flex: 1 1 auto; min-height: 2.75rem; }
+    /* Nebeneinander bliebe von keiner Auswahl genug übrig, um sie zu lesen;
+       die Knöpfe darunter teilen sich dafür eine Zeile. */
+    .list-toolbar select { flex: 1 1 100%; width: 100%; }
+    .list-toolbar .btn { flex: 1 1 8rem; min-height: 2.75rem; }
+    .dash-columns { grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+
+    /* ----------------------------------------------------------------------
+       Listen als Karten
+
+       Fünf bis acht Spalten passen auf kein Telefon; seitlich schieben müssen,
+       um den Betrag zu sehen, ist unterwegs genau das Falsche. Jede Zeile wird
+       deshalb zur Karte – dieselben Zellen, nur anders angeordnet. Die Tabelle
+       bleibt dabei eine Tabelle: ein Satz Markup, keine zweite Fassung, die
+       auseinanderlaufen könnte.
+
+       Im Markup braucht es dafür zwei Namen und ein Attribut:
+         .table-wrap.karten   am Rahmen – er fällt hier weg, jede Karte bringt
+                              ihren eigenen mit
+         .karten-tabelle      an der Tabelle
+         data-label="…"       an jeder Zelle, vor der ihre Spaltenüberschrift
+                              stehen soll
+       dazu zwei Klassen für einzelne Zellen: .titel steht oben auf der Karte
+       (der Name, die Nummer), .aktionen unten (die Knöpfe); .is-leer fällt weg.
+
+       Geschrieben als table.data.karten-tabelle: Die Regeln für .data sind mit
+       „table.data tbody tr" spezifischer als eine Klasse allein und setzten
+       sich sonst durch.
+       ---------------------------------------------------------------------- */
+    .table-wrap.karten { overflow: visible; border: none; border-radius: 0; }
+
+    table.data.karten-tabelle { display: block; background: none; font-size: 1rem; }
+    table.data.karten-tabelle thead { display: none; }
+    table.data.karten-tabelle tbody, table.data.karten-tabelle tfoot { display: block; }
+
+    table.data.karten-tabelle tbody tr, table.data.karten-tabelle tfoot tr {
+        display: flex; flex-direction: column;
+        margin-bottom: 0.75rem; padding: 0.9rem 1rem;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    table.data.karten-tabelle tbody tr:last-child { margin-bottom: 0; }
+    table.data.karten-tabelle tbody tr:hover { background: rgba(15, 23, 42, 0.55); }
+
+    /* Ohne Beschriftung steht eine Zelle über die ganze Breite. */
+    table.data.karten-tabelle td {
+        display: block; padding: 0.25rem 0; border: none;
+        white-space: normal; text-align: left; overflow-wrap: anywhere;
+    }
+    /* Mit Beschriftung: links das Wort aus dem Tabellenkopf, rechts der Wert. */
+    table.data.karten-tabelle td[data-label] {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 1rem; text-align: right;
+    }
+    table.data.karten-tabelle td[data-label]::before {
+        content: attr(data-label); flex: none;
+        color: var(--text-dim); font-size: 0.82rem; text-align: left;
+    }
+    /* Was in der Tabelle nur eine leere Zelle wäre, fällt auf der Karte weg. */
+    table.data.karten-tabelle td.is-leer { display: none; }
+
+    /* Der Name steht oben, auch wenn seine Spalte weiter hinten liegt – die
+       Karte ordnet neu, das Markup bleibt, wie es ist. */
+    table.data.karten-tabelle td.titel {
+        order: -1; font-size: 1.02rem; line-height: 1.35; padding-bottom: 0.4rem;
+    }
+    table.data.karten-tabelle td.titel .muted { font-size: 0.85rem; }
+
+    /* Die Knöpfe stehen unten und teilen sich die Breite. */
+    table.data.karten-tabelle td.aktionen {
+        order: 1; display: flex; flex-wrap: wrap; gap: 0.5rem; padding-top: 0.8rem;
+    }
+    table.data.karten-tabelle td.aktionen:empty { display: none; }
+    table.data.karten-tabelle td.aktionen .row-actions { flex: 1 1 100%; justify-content: stretch; }
+    table.data.karten-tabelle td.aktionen > *,
+    table.data.karten-tabelle td.aktionen .row-actions > * { flex: 1 1 8rem; }
+    table.data.karten-tabelle td.aktionen .btn { width: 100%; min-height: 2.75rem; }
+
+    /* Die Summe unter den Positionen einer Rechnung bleibt eine Zeile. */
+    table.data.karten-tabelle tfoot tr {
+        flex-direction: row; justify-content: space-between; gap: 1rem; margin-top: 0.75rem;
+    }
+    table.data.karten-tabelle tfoot td { padding: 0; }
+
+    /* Eine Vorschau füllt die Karte, statt sich neben eine Beschriftung zu
+       quetschen (Signaturen). */
+    table.data.karten-tabelle .signature-text,
+    table.data.karten-tabelle td .signature-html { min-width: 0; max-width: none; }
+
+    /* Zum Antippen groß genug. */
+    table.data.karten-tabelle .pick input[type="checkbox"] { width: 1.35rem; height: 1.35rem; }
+    table.data.karten-tabelle select.status-select { min-height: 2.25rem; }
+}

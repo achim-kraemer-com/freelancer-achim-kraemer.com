@@ -67,19 +67,19 @@
             {% if overdueInvoices is not empty %}
                 <div class="section">
                     <div class="section-head"><h2 class="overdue-text">⚠ Überfällige Rechnungen</h2></div>
-                    <div class="table-wrap">
-                        <table class="data">
+                    <div class="table-wrap karten">
+                        <table class="data karten-tabelle">
                             <thead>
                                 <tr><th>Nr.</th><th>Kunde</th><th>Fällig</th><th class="num">Betrag (€)</th><th class="num">Überfällig</th></tr>
                             </thead>
                             <tbody>
                                 {% for invoice in overdueInvoices|slice(0, 8) %}
                                     <tr>
-                                        <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
-                                        <td class="muted">{{ invoice.customer }}</td>
-                                        <td class="overdue-text">{{ invoice.dueDate|date('d.m.Y') }}</td>
-                                        <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
-                                        <td class="num overdue-text">{{ invoice.daysUntilDue * -1 }} Tage</td>
+                                        <td class="titel"><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                                        <td class="muted" data-label="Kunde">{{ invoice.customer }}</td>
+                                        <td class="overdue-text" data-label="Fällig">{{ invoice.dueDate|date('d.m.Y') }}</td>
+                                        <td class="num" data-label="Betrag (€)">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                                        <td class="num overdue-text" data-label="Überfällig">{{ invoice.daysUntilDue * -1 }} Tage</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -97,19 +97,19 @@
                     {% if openInvoices is empty %}
                         <div class="empty">Keine offenen Rechnungen. 🎉</div>
                     {% else %}
-                        <div class="table-wrap">
-                            <table class="data">
+                        <div class="table-wrap karten">
+                            <table class="data karten-tabelle">
                                 <thead>
                                     <tr><th>Nr.</th><th>Kunde</th><th>Datum</th><th class="num">Betrag (€)</th><th>Status</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for invoice in openInvoices|slice(0, 6) %}
                                         <tr>
-                                            <td><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
-                                            <td class="muted">{{ invoice.customer }}</td>
-                                            <td class="muted">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
-                                            <td class="num">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
-                                            <td><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
+                                            <td class="titel"><a href="{{ path('admin_invoice_show', {id: invoice.id}) }}">{{ invoice.number }}</a></td>
+                                            <td class="muted" data-label="Kunde">{{ invoice.customer }}</td>
+                                            <td class="muted" data-label="Datum">{{ invoice.invoiceDate|date('d.m.Y') }}</td>
+                                            <td class="num" data-label="Betrag (€)">{{ invoice.totalAmount|number_format(2, ',', '.') }}</td>
+                                            <td data-label="Status"><span class="status status-{{ invoice.status }}">{{ invoice.status|capitalize }}</span></td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -126,17 +126,17 @@
                     {% if recentCustomers is empty %}
                         <div class="empty">Noch keine aktiven Kunden.</div>
                     {% else %}
-                        <div class="table-wrap">
-                            <table class="data">
+                        <div class="table-wrap karten">
+                            <table class="data karten-tabelle">
                                 <thead>
                                     <tr><th>Kunde</th><th>Ort</th><th class="num">Projekte</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for customer in recentCustomers %}
                                         <tr>
-                                            <td><a href="{{ path('admin_customer_show', {id: customer.id}) }}">{{ customer }}</a></td>
-                                            <td class="muted">{{ customer.city ?: '—' }}</td>
-                                            <td class="num">{{ projectCounts[customer.id] ?? 0 }}</td>
+                                            <td class="titel"><a href="{{ path('admin_customer_show', {id: customer.id}) }}">{{ customer }}</a></td>
+                                            <td class="muted" data-label="Ort">{{ customer.city ?: '—' }}</td>
+                                            <td class="num" data-label="Projekte">{{ projectCounts[customer.id] ?? 0 }}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -154,19 +154,19 @@
                 {% if openTasks is empty %}
                     <div class="empty">Keine offenen Aufgaben.</div>
                 {% else %}
-                    <div class="table-wrap">
-                        <table class="data">
+                    <div class="table-wrap karten">
+                        <table class="data karten-tabelle">
                             <thead>
                                 <tr><th>Aufgabe</th><th>Kunde / Projekt</th><th>Status</th><th class="num">Stunden</th><th class="num">Kosten (€)</th></tr>
                             </thead>
                             <tbody>
                                 {% for task in openTasks|slice(0, 8) %}
                                     <tr>
-                                        <td><a href="{{ path('admin_project_show', {id: task.project.id}) }}">{{ task.name }}</a></td>
-                                        <td class="muted">{{ task.project.customer }} · {{ task.project.name }}</td>
-                                        <td><span class="status status-{{ task.statusSlug }}">{{ task.status|capitalize }}</span></td>
-                                        <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
-                                        <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
+                                        <td class="titel"><a href="{{ path('admin_project_show', {id: task.project.id}) }}">{{ task.name }}</a></td>
+                                        <td class="muted" data-label="Kunde / Projekt">{{ task.project.customer }} · {{ task.project.name }}</td>
+                                        <td data-label="Status"><span class="status status-{{ task.statusSlug }}">{{ task.status|capitalize }}</span></td>
+                                        <td class="num" data-label="Stunden">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                                        <td class="num" data-label="Kosten (€)">{{ task.cost|number_format(2, ',', '.') }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

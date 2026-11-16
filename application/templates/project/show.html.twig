@@ -37,8 +37,8 @@
         {% else %}
             <form method="post" action="{{ path('admin_project_create_invoice', {id: project.id}) }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('create-invoice' ~ project.id) }}">
-                <div class="table-wrap">
-                    <table class="data">
+                <div class="table-wrap karten">
+                    <table class="data karten-tabelle">
                         <thead>
                             <tr>
                                 <th style="width:2rem;"></th>
@@ -53,18 +53,22 @@
                         <tbody>
                             {% for task in project.tasks %}
                                 <tr>
-                                    <td class="pick">
-                                        {% if not task.invoiced %}
+                                    {# Ist die Aufgabe abgerechnet, steht hier nichts – auf der
+                                       Karte fällt die Zelle dann ganz weg (.is-leer). #}
+                                    {% if task.invoiced %}
+                                        <td class="pick is-leer"></td>
+                                    {% else %}
+                                        <td class="pick" data-label="Für Rechnung">
                                             <input type="checkbox" name="tasks[]" value="{{ task.id }}">
-                                        {% endif %}
-                                    </td>
-                                    <td>
+                                        </td>
+                                    {% endif %}
+                                    <td class="titel">
                                         {{ task.name }}
                                         {% if task.description %}<div class="muted">{{ task.description|nl2br }}</div>{% endif %}
                                     </td>
-                                    <td class="num">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
-                                    <td class="num">{{ task.cost|number_format(2, ',', '.') }}</td>
-                                    <td>
+                                    <td class="num" data-label="Stunden">{{ task.hours ? task.hours|number_format(2, ',', '.') ~ ' Std.' : '—' }}</td>
+                                    <td class="num" data-label="Kosten (€)">{{ task.cost|number_format(2, ',', '.') }}</td>
+                                    <td data-label="Status">
                                         {% if task.invoiced %}
                                             <span class="status status-{{ task.statusSlug }}">{{ task.status|capitalize }}</span>
                                         {% else %}
@@ -79,14 +83,14 @@
                                             </select>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-label="Abrechnung">
                                         {% if task.invoiced %}
                                             <span class="status status-verschickt">Abgerechnet</span>
                                         {% else %}
                                             <span class="status status-bezahlt">Offen</span>
                                         {% endif %}
                                     </td>
-                                    <td class="num">
+                                    <td class="num aktionen">
                                         {% if not task.invoiced %}
                                             <a href="{{ path('admin_task_edit', {id: task.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
                                         {% elseif task.invoice %}

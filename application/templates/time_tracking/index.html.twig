@@ -104,19 +104,19 @@
         {% if recentEntries is empty %}
             <div class="empty">Noch keine Zeiteinträge erfasst.</div>
         {% else %}
-            <div class="table-wrap">
-                <table class="data">
+            <div class="table-wrap karten">
+                <table class="data karten-tabelle">
                     <thead>
                         <tr><th>Datum</th><th>Aufgabe</th><th>Kunde / Projekt</th><th class="num">Dauer</th><th>Notiz</th></tr>
                     </thead>
                     <tbody>
                         {% for entry in recentEntries %}
                             <tr>
-                                <td class="muted">{{ entry.workDate|date('d.m.Y') }}</td>
-                                <td>{{ entry.task.name }}</td>
-                                <td class="muted">{{ entry.task.project.customer }} · {{ entry.task.project.name }}</td>
-                                <td class="num">{{ (entry.minutes // 60) }} Std. {{ '%02d'|format(entry.minutes % 60) }} Min.</td>
-                                <td class="muted">{{ entry.note ?: '—' }}</td>
+                                <td class="muted" data-label="Datum">{{ entry.workDate|date('d.m.Y') }}</td>
+                                <td class="titel">{{ entry.task.name }}</td>
+                                <td class="muted" data-label="Kunde / Projekt">{{ entry.task.project.customer }} · {{ entry.task.project.name }}</td>
+                                <td class="num" data-label="Dauer">{{ (entry.minutes // 60) }} Std. {{ '%02d'|format(entry.minutes % 60) }} Min.</td>
+                                <td class="muted" data-label="Notiz">{{ entry.note ?: '—' }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

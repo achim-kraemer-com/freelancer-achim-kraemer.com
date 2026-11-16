@@ -25,8 +25,8 @@
             </div>
         </div>
     {% else %}
-        <div class="table-wrap">
-            <table class="data">
+        <div class="table-wrap karten">
+            <table class="data karten-tabelle">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -38,7 +38,7 @@
                 <tbody>
                     {% for signature in signatures %}
                         <tr>
-                            <td>
+                            <td class="titel">
                                 {{ signature.label }}
                                 {% if signature.isHtml %}<span class="chip">HTML</span>{% endif %}
                             </td>
@@ -50,7 +50,7 @@
                                     <div class="signature-text">{{ signature.text }}</div>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td data-label="Vorgabe für">
                                 {# Which letterhead presets this signature – otherwise one only
                                    sees at the invoice whether the assignment is right. #}
                                 {% if signature.defaultForTemplate %}
@@ -59,7 +59,7 @@
                                     <span class="muted">nicht zugewiesen</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="aktionen">
                                 <div class="row-actions">
                                     <a href="{{ path('admin_signature_edit', {id: signature.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
                                     <form method="post" action="{{ path('admin_signature_delete', {id: signature.id}) }}" class="inline-form"

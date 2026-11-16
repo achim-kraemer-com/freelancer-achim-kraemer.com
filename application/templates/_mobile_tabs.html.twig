@@ -1,0 +1,64 @@
+{# Die untere Navigationsleiste – nur auf schmalen Bildschirmen sichtbar
+   (app.css, @media max-width: 720px). Oben neben der Marke bleiben Lupe und
+   „A" stehen (_admin_tools.html.twig), die Bereiche wandern nach unten an den
+   Daumen. Nach dem Vorbild des Portals (portal/_mobile_tabs.html.twig).
+
+   Vier Bereiche nebeneinander und „Mehr" für den Rest: Zehn Einträge hätten
+   je gut 35 Pixel – zu schmal für eine lesbare Beschriftung. „Mehr" ist ein
+   <details> und klappt auch ohne JavaScript auf; navigation.js schließt es
+   beim Tippen daneben und mit Esc.
+
+   Wer kein Administrator ist, sieht hier dieselben vier Einträge wie oben in
+   der Leiste; dann bleibt „Mehr" leer und fällt weg. #}
+{% set route = app.request.attributes.get('_route') ?? '' %}
+
+{% if is_granted('ROLE_ADMIN') %}
+    {% set bereiche = [
+        {pfad: 'app_dashboard',             praefixe: ['app_dashboard'],                                 name: 'Übersicht',  symbol: 'uebersicht'},
+        {pfad: 'admin_customer_index',      praefixe: ['admin_customer', 'admin_project', 'admin_task'], name: 'Kunden',     symbol: 'kunden'},
+        {pfad: 'admin_invoice_index',       praefixe: ['admin_invoice'],                                 name: 'Rechnungen', symbol: 'rechnungen'},
+        {pfad: 'admin_time_tracking_index', praefixe: ['admin_time_tracking'],                           name: 'Zeiten',     symbol: 'zeiten'},
+    ] %}
+    {% set weitere = [
+        {pfad: 'admin_signature_index',       praefixe: ['admin_signature'],       name: 'Signaturen', symbol: 'signaturen'},
+        {pfad: 'admin_user_index',            praefixe: ['admin_user'],            name: 'Benutzer',   symbol: 'benutzer'},
+        {pfad: 'admin_assistant_model_index', praefixe: ['admin_assistant_model'], name: 'Modelle',    symbol: 'modelle'},
+        {pfad: 'app_profile_index',           praefixe: ['app_profile'],           name: 'Profil',     symbol: 'profil'},
+        {pfad: 'app_home',                    praefixe: [],                        name: 'Website',    symbol: 'website'},
+        {pfad: 'app_logout',                  praefixe: [],                        name: 'Logout',     symbol: 'logout'},
+    ] %}
+{% else %}
+    {% set bereiche = [
+        {pfad: 'app_dashboard',   praefixe: ['app_dashboard'], name: 'Übersicht', symbol: 'uebersicht'},
+        {pfad: 'app_profile_index', praefixe: ['app_profile'], name: 'Profil',    symbol: 'profil'},
+        {pfad: 'app_home',        praefixe: [],                name: 'Website',   symbol: 'website'},
+        {pfad: 'app_logout',      praefixe: [],                name: 'Logout',    symbol: 'logout'},
+    ] %}
+    {% set weitere = [] %}
+{% endif %}
+
+{% set mehrAktiv = weitere|filter(e => e.praefixe|filter(p => route starts with p)|length > 0)|length > 0 %}
+
+<nav class="mobile-tabs" aria-label="Bereiche">
+    {% for eintrag in bereiche %}
+        <a href="{{ path(eintrag.pfad) }}" class="{{ eintrag.praefixe|filter(p => route starts with p)|length > 0 ? 'active' }}">
+            {{- include('_symbol.html.twig', {name: eintrag.symbol}) -}} {{ eintrag.name }}
+        </a>
+    {% endfor %}
+    {% if weitere is not empty %}
+        <details class="mehr-menue">
+            <summary class="{{ mehrAktiv ? 'active' }}">
+                {{- include('_symbol.html.twig', {name: 'mehr'}) -}} Mehr
+            </summary>
+            <div class="mehr-liste">
+                {% for eintrag in weitere %}
+                    <a href="{{ path(eintrag.pfad) }}" class="{{ eintrag.praefixe|filter(p => route starts with p)|length > 0 ? 'active' }}">
+                        {{- include('_symbol.html.twig', {name: eintrag.symbol}) -}} {{ eintrag.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </details>
+    {% endif %}
+</nav>
+
+<script defer src="{{ asset('js/navigation.js') }}"></script>

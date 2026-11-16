@@ -25,8 +25,8 @@
             </div>
         </div>
     {% else %}
-        <div class="table-wrap">
-            <table class="data">
+        <div class="table-wrap karten">
+            <table class="data karten-tabelle">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -39,13 +39,13 @@
                 <tbody>
                     {% for model in models %}
                         <tr>
-                            <td>
+                            <td class="titel">
                                 {{ model.label }}
                                 {% if model.isDefault %}<span class="chip">Vorgabe</span>{% endif %}
                             </td>
-                            <td class="muted">{{ model.model }}</td>
-                            <td class="muted">{{ model.resolveBaseUrl ?? 'api.anthropic.com' }}</td>
-                            <td>
+                            <td class="muted" data-label="Modell">{{ model.model }}</td>
+                            <td class="muted" data-label="Adresse">{{ model.resolveBaseUrl ?? 'api.anthropic.com' }}</td>
+                            <td data-label="Status">
                                 {% if model.lastError %}
                                     <span class="status status-overdue" title="{{ model.lastError }}">Fehler</span>
                                 {% elseif model.lastCheckedAt %}
@@ -56,7 +56,7 @@
                                     <span class="status status-offen">ungeprüft</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="aktionen">
                                 <div class="row-actions">
                                     <form method="post" action="{{ path('admin_assistant_model_test', {id: model.id}) }}" class="inline-form">
                                         <input type="hidden" name="_token" value="{{ csrf_token('test' ~ model.id) }}">

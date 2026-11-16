@@ -28,8 +28,8 @@
     {% if pagination.items is empty %}
         <div class="empty">Keine Kunden gefunden.</div>
     {% else %}
-        <div class="table-wrap">
-            <table class="data">
+        <div class="table-wrap karten">
+            <table class="data karten-tabelle">
                 <thead>
                     <tr>
                         <th>Firma / Name</th>
@@ -43,23 +43,23 @@
                 <tbody>
                     {% for customer in pagination.items %}
                         <tr>
-                            <td>
+                            <td class="titel">
                                 <a href="{{ path('admin_customer_show', {id: customer.id}) }}">
                                     {{ customer.companyName ?: (customer.firstname ~ ' ' ~ customer.lastname) }}
                                 </a>
                                 {% if customer.companyName %}<div class="muted">{{ customer.firstname }} {{ customer.lastname }}</div>{% endif %}
                             </td>
-                            <td class="muted">{{ customer.email }}</td>
-                            <td class="muted">{{ customer.plz }} {{ customer.city }}</td>
-                            <td class="num">{{ customer.projects|length }}</td>
-                            <td>
+                            <td class="muted" data-label="E-Mail">{{ customer.email }}</td>
+                            <td class="muted" data-label="Ort">{{ customer.plz }} {{ customer.city }}</td>
+                            <td class="num" data-label="Projekte">{{ customer.projects|length }}</td>
+                            <td data-label="Status">
                                 {% if customer.active %}
                                     <span class="status status-bezahlt">Aktiv</span>
                                 {% else %}
                                     <span class="status status-verschickt">Inaktiv</span>
                                 {% endif %}
                             </td>
-                            <td class="num">
+                            <td class="num aktionen">
                                 <a href="{{ path('admin_customer_edit', {id: customer.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
                             </td>
                         </tr>
