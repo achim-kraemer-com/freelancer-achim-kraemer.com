@@ -1,32 +1,36 @@
 {{ form_start(form, {attr: {novalidate: 'novalidate', autocomplete: 'off'}}) }}
     {{ form_errors(form) }}
 
-    <div class="form-grid">
-        <div class="form-row">
-            {{ form_label(form.label) }}{{ form_widget(form.label) }}
-            <span class="form-help">{{ form_help(form.label) }}</span>{{ form_errors(form.label) }}
+    {# Wie im Portal: die Felder stehen in einem Rahmen mit Überschrift. #}
+    <fieldset>
+        <legend>Modell</legend>
+        <div class="form-grid">
+            <div class="form-row">
+                {{ form_label(form.label) }}{{ form_widget(form.label) }}
+                <span class="form-help">{{ form_help(form.label) }}</span>{{ form_errors(form.label) }}
+            </div>
+            <div class="form-row">
+                {{ form_label(form.provider) }}{{ form_widget(form.provider) }}
+                <span class="form-help">{{ form_help(form.provider) }}</span>{{ form_errors(form.provider) }}
+            </div>
+            <div class="form-row">
+                {{ form_label(form.model) }}{{ form_widget(form.model) }}
+                <span class="form-help">{{ form_help(form.model) }}</span>{{ form_errors(form.model) }}
+            </div>
+            <div class="form-row">
+                {{ form_label(form.baseUrl) }}{{ form_widget(form.baseUrl) }}
+                <span class="form-help">{{ form_help(form.baseUrl) }}</span>{{ form_errors(form.baseUrl) }}
+            </div>
+            <div class="form-row">
+                {{ form_label(form.reasoningEffort) }}{{ form_widget(form.reasoningEffort) }}
+                <span class="form-help">{{ form_help(form.reasoningEffort) }}</span>{{ form_errors(form.reasoningEffort) }}
+            </div>
+            <div class="form-row full">
+                {{ form_label(form.apiKeyPlain) }}{{ form_widget(form.apiKeyPlain) }}
+                <span class="form-help">{{ form_help(form.apiKeyPlain) }}</span>{{ form_errors(form.apiKeyPlain) }}
+            </div>
         </div>
-        <div class="form-row">
-            {{ form_label(form.provider) }}{{ form_widget(form.provider) }}
-            <span class="form-help">{{ form_help(form.provider) }}</span>{{ form_errors(form.provider) }}
-        </div>
-        <div class="form-row">
-            {{ form_label(form.model) }}{{ form_widget(form.model) }}
-            <span class="form-help">{{ form_help(form.model) }}</span>{{ form_errors(form.model) }}
-        </div>
-        <div class="form-row">
-            {{ form_label(form.baseUrl) }}{{ form_widget(form.baseUrl) }}
-            <span class="form-help">{{ form_help(form.baseUrl) }}</span>{{ form_errors(form.baseUrl) }}
-        </div>
-        <div class="form-row">
-            {{ form_label(form.reasoningEffort) }}{{ form_widget(form.reasoningEffort) }}
-            <span class="form-help">{{ form_help(form.reasoningEffort) }}</span>{{ form_errors(form.reasoningEffort) }}
-        </div>
-        <div class="form-row full">
-            {{ form_label(form.apiKeyPlain) }}{{ form_widget(form.apiKeyPlain) }}
-            <span class="form-help">{{ form_help(form.apiKeyPlain) }}</span>{{ form_errors(form.apiKeyPlain) }}
-        </div>
-    </div>
+    </fieldset>
 
     {# Vorschläge für die beiden Freitextfelder – der Browser bietet sie beim Tippen an. #}
     <datalist id="adress-vorschlaege">

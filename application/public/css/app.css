@@ -867,6 +867,19 @@ dialog.admin-fenster::backdrop { background: rgba(8, 11, 17, 0.7); backdrop-filt
 .admin-fenster .proposal, .admin-fenster .assistant-setup { padding: 1rem; margin-bottom: 1rem; }
 .admin-fenster .alert { margin-bottom: 1rem; }
 
+/* Die Felder eines Formulars in einem Rahmen mit Überschrift, wie im Portal.
+   .radio-group setzt das für seine Fieldsets wieder zurück (höhere Spezifität). */
+fieldset {
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.25rem;
+    margin: 0 0 1.5rem;
+}
+fieldset legend {
+    padding: 0 0.5rem; font-size: 0.78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent);
+}
+
 /* Woher Schlüssel und Modellname kommen – unter dem Formular. */
 .modell-hilfe { margin-top: 2rem; font-size: 0.85rem; color: var(--text-muted); }
 .modell-hilfe strong { display: block; margin-bottom: 0.6rem; color: var(--text); }
