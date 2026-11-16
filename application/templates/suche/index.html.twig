@@ -1,0 +1,21 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Suche · Freelancer-Pro{% endblock %}
+
+{# Die Seite hinter der Lupe, wenn kein JavaScript läuft – sonst öffnet die
+   Lupe das Such-Fenster aus _admin_tools.html.twig. #}
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Suche</h1>
+            <p class="sub">In Kunden, Projekten, Aufgaben, Rechnungen und Zeiten zugleich – die KI übersetzt die Frage in Suchbegriffe.</p>
+        </div>
+    </div>
+
+    <form method="get" action="{{ path('admin_suche') }}" class="card form-card suche-seite-form" role="search">
+        <input type="search" name="q" value="{{ q }}" placeholder="Wonach suchst du?" maxlength="200" autofocus>
+        <button class="btn btn-primary">Suchen</button>
+    </form>
+
+    {{ include('suche/_ergebnisse.html.twig') }}
+{% endblock %}

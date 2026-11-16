@@ -1,0 +1,17 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ model.label }} bearbeiten · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_assistant_model_index') }}">Modelle</a> / {{ model.label }}</div>
+    <div class="page-head">
+        <div>
+            <h1>{{ model.label }}</h1>
+            <p class="sub">{{ model.describe }}</p>
+        </div>
+    </div>
+
+    <div class="card form-card">
+        {% include 'assistant_model/_form.html.twig' with { submit_label: 'Speichern' } %}
+    </div>
+{% endblock %}

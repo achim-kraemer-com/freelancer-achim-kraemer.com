@@ -4,12 +4,14 @@
         Freelancer-Pro
     </a>
     {% if is_granted('ROLE_ADMIN') %}
+        {{ include('_admin_tools.html.twig') }}
         <div class="links">
             <a href="{{ path('admin_customer_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_customer' or app.request.attributes.get('_route') starts with 'admin_project' or app.request.attributes.get('_route') starts with 'admin_task' ? 'active' }}">Kunden</a>
             <a href="{{ path('admin_invoice_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_invoice' ? 'active' }}">Rechnungen</a>
             <a href="{{ path('admin_signature_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_signature' ? 'active' }}">Signaturen</a>
             <a href="{{ path('admin_time_tracking_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_time_tracking' ? 'active' }}">Zeiterfassung</a>
             <a href="{{ path('admin_user_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_user' ? 'active' }}">Benutzer</a>
+            <a href="{{ path('admin_assistant_model_index') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_assistant_model' ? 'active' }}">Modelle</a>
         </div>
     {% endif %}
     <span class="spacer"></span>
@@ -19,3 +21,9 @@
         <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Logout</a>
     </div>
 </nav>
+
+{# Die Fenster hinter Lupe und „A" – auf jeder Seite mit dieser Leiste
+   erreichbar, auch mit ⌘K bzw. Strg+K. #}
+{% if is_granted('ROLE_ADMIN') %}
+    {{ include('_admin_fenster.html.twig') }}
+{% endif %}

@@ -1,0 +1,19 @@
+{# Lupe und „A" in der Navigation: sie öffnen je ein Fenster – die KI-Suche
+   (public/js/suche.js, auch mit ⌘K bzw. Strg+K) und den Assistenten
+   (public/js/assistent.js). Ohne JavaScript führen sie auf die Seiten
+   /admin/suche und /admin/assistent. Die Fenster selbst stehen in
+   _admin_fenster.html.twig, nach dem Vorbild des Portals. #}
+{% set route = app.request.attributes.get('_route') ?? '' %}
+<div class="nav-werkzeuge">
+    <a href="{{ path('admin_suche') }}" class="nav-werkzeug{{ route == 'admin_suche' ? ' active' }}" data-suche-oeffnen title="Suchen (⌘K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.6-3.6"></path>
+        </svg>
+        <span class="visually-hidden">Suchen</span>
+    </a>
+    <a href="{{ path('admin_assistant_index') }}" class="nav-werkzeug{{ route starts with 'admin_assistant' ? ' active' }}" data-assistent-oeffnen title="Assistent">
+        <span class="assistent-mark" aria-hidden="true">A</span>
+        <span class="visually-hidden">Assistent</span>
+    </a>
+</div>

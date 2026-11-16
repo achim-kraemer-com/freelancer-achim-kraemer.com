@@ -1,0 +1,110 @@
+{# Die Ergebnisse der Suche – im Such-Fenster unter dem Feld (siehe
+   public/js/suche.js) ebenso wie auf der Seite /admin/suche. #}
+{% set bereichNamen = {
+    kunden:     'Kunden',
+    projekte:   'Projekte',
+    aufgaben:   'Aufgaben',
+    rechnungen: 'Rechnungen',
+    zeiten:     'Zeiten',
+} %}
+
+<div class="suche-ergebnis">
+    {% if plan %}
+        {# Was die KI aus der Eingabe gemacht hat, steht offen da – sonst wäre
+           nicht zu verstehen, warum ein Treffer kommt oder einer fehlt. #}
+        {% if plan.vonKi %}
+            <div class="suche-plan">
+                <span class="muted">Gesucht nach</span>
+                {% for begriff in plan.begriffe %}<span class="chip">{{ begriff }}</span>{% endfor %}
+                {% if plan.von or plan.bis %}
+                    <span class="chip suche-zeitraum">
+                        {%- if plan.von %}ab {{ plan.von|date('j.n.Y') }}{% endif -%}
+                        {%- if plan.von and plan.bis %} {% endif -%}
+                        {%- if plan.bis %}bis {{ plan.bis|date_modify('-1 day')|date('j.n.Y') }}{% endif -%}
+                    </span>
+                {% endif %}
+                {% if plan.bereiche is not empty %}
+                    <span class="muted">in</span>
+                    {% for bereich in plan.bereiche %}<span class="chip">{{ bereichNamen[bereich] }}</span>{% endfor %}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if hinweis %}
+            <p class="suche-hinweis muted">{{ hinweis }}</p>
+        {% endif %}
+
+        {% if treffer is empty %}
+            <div class="empty">
+                <strong>Nichts gefunden</strong><br>
+                Zu „{{ q }}“ gibt es in keinem Bereich einen Treffer.
+            </div>
+        {% else %}
+            <div class="suche-gruppen">
+                {% for bereich, liste in treffer %}
+                    <div class="suche-gruppe">
+                        <div class="suche-gruppe-kopf">
+                            <span>{{ bereichNamen[bereich] }}</span>
+                            <span class="suche-anzahl">{{ liste|length }}</span>
+                        </div>
+                        <div class="suche-liste">
+                            {% for t in liste %}
+                                {% if bereich == 'kunden' %}
+                                    <a href="{{ path('admin_customer_show', {id: t.id}) }}" class="suche-treffer">
+                                        <span class="treffer-haupt">
+                                            <span class="treffer-titel">{{ t }}</span>
+                                            <span class="treffer-meta">{{ [t.email, t.phone ?: t.mobile, t.city]|filter(v => v)|join(' · ') }}</span>
+                                        </span>
+                                        <span class="treffer-seite">{{ t.projects|length }} Proj.</span>
+                                    </a>
+                                {% elseif bereich == 'projekte' %}
+                                    <a href="{{ path('admin_project_show', {id: t.id}) }}" class="suche-treffer">
+                                        <span class="treffer-haupt">
+                                            <span class="treffer-titel">{{ t.name }}</span>
+                                            <span class="treffer-meta">{{ t.customer }}{% if t.description %} · {{ t.description|length > 70 ? t.description|slice(0, 70) ~ '…' : t.description }}{% endif %}</span>
+                                        </span>
+                                        <span class="treffer-seite">
+                                            {{ t.openTotalCost|number_format(2, ',', '.') }} €<br>offen
+                                        </span>
+                                    </a>
+                                {% elseif bereich == 'aufgaben' %}
+                                    <a href="{{ path('admin_task_edit', {id: t.id}) }}" class="suche-treffer">
+                                        <span class="treffer-haupt">
+                                            <span class="treffer-titel">{{ t.name }}</span>
+                                            <span class="treffer-meta">{{ t.project.name }} · {{ t.project.customer }}</span>
+                                        </span>
+                                        <span class="treffer-seite">
+                                            <span class="status status-{{ t.statusSlug }}">{{ t.status }}</span><br>
+                                            {{ t.cost|number_format(2, ',', '.') }} €{% if t.invoiced %} · abgerechnet{% endif %}
+                                        </span>
+                                    </a>
+                                {% elseif bereich == 'rechnungen' %}
+                                    <a href="{{ path('admin_invoice_show', {id: t.id}) }}" class="suche-treffer">
+                                        <span class="treffer-haupt">
+                                            <span class="treffer-titel">{{ t.number }}</span>
+                                            <span class="treffer-meta">{{ t.customer }}{% if t.project %} · {{ t.project.name }}{% endif %}</span>
+                                        </span>
+                                        <span class="treffer-seite">
+                                            <span class="status status-{{ t.status }}">{{ t.status }}</span><br>
+                                            {{ t.totalAmount|number_format(2, ',', '.') }} € · {{ t.invoiceDate|date('j.n.y') }}
+                                        </span>
+                                    </a>
+                                {% elseif bereich == 'zeiten' %}
+                                    <a href="{{ path('admin_task_edit', {id: t.task.id}) }}" class="suche-treffer">
+                                        <span class="treffer-haupt">
+                                            <span class="treffer-titel">{{ t.task.name }}</span>
+                                            <span class="treffer-meta">{{ t.task.project.name }}{% if t.note %} · {{ t.note|length > 70 ? t.note|slice(0, 70) ~ '…' : t.note }}{% endif %}</span>
+                                        </span>
+                                        <span class="treffer-seite">
+                                            {{ t.minutes }} Min.<br>{{ t.workDate|date('j.n.y') }}
+                                        </span>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

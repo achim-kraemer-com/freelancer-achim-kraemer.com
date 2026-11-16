@@ -1,0 +1,63 @@
+{{ form_start(form, {attr: {novalidate: 'novalidate', autocomplete: 'off'}}) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+        <div class="form-row">
+            {{ form_label(form.label) }}{{ form_widget(form.label) }}
+            <span class="form-help">{{ form_help(form.label) }}</span>{{ form_errors(form.label) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.provider) }}{{ form_widget(form.provider) }}
+            <span class="form-help">{{ form_help(form.provider) }}</span>{{ form_errors(form.provider) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.model) }}{{ form_widget(form.model) }}
+            <span class="form-help">{{ form_help(form.model) }}</span>{{ form_errors(form.model) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.baseUrl) }}{{ form_widget(form.baseUrl) }}
+            <span class="form-help">{{ form_help(form.baseUrl) }}</span>{{ form_errors(form.baseUrl) }}
+        </div>
+        <div class="form-row">
+            {{ form_label(form.reasoningEffort) }}{{ form_widget(form.reasoningEffort) }}
+            <span class="form-help">{{ form_help(form.reasoningEffort) }}</span>{{ form_errors(form.reasoningEffort) }}
+        </div>
+        <div class="form-row full">
+            {{ form_label(form.apiKeyPlain) }}{{ form_widget(form.apiKeyPlain) }}
+            <span class="form-help">{{ form_help(form.apiKeyPlain) }}</span>{{ form_errors(form.apiKeyPlain) }}
+        </div>
+    </div>
+
+    {# Vorschläge für die beiden Freitextfelder – der Browser bietet sie beim Tippen an. #}
+    <datalist id="adress-vorschlaege">
+        {% for name, preset in constant('App\\Entity\\AssistantModel::PRESETS') %}
+            <option value="{{ preset.url }}">{{ name }}</option>
+        {% endfor %}
+    </datalist>
+    <datalist id="modell-vorschlaege">
+        <option value="claude-opus-5">Anthropic</option>
+        <option value="claude-sonnet-5">Anthropic, günstiger</option>
+        {% for name, preset in constant('App\\Entity\\AssistantModel::PRESETS') %}
+            <option value="{{ preset.model }}">{{ name }}</option>
+        {% endfor %}
+    </datalist>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ submit_label|default('Speichern') }}</button>
+        <a href="{{ path('admin_assistant_model_index') }}" class="btn btn-ghost">Abbrechen</a>
+    </div>
+{{ form_end(form) }}
+
+<div class="modell-hilfe">
+    <strong>Wo bekomme ich Schlüssel und Modellname?</strong>
+    <dl>
+        <dt>Anthropic</dt>
+        <dd><a href="https://console.anthropic.com/settings/keys" rel="noopener">console.anthropic.com</a> · Modell z. B. <code>claude-opus-5</code> · Adresse leer lassen</dd>
+        <dt>OpenAI</dt>
+        <dd><a href="https://platform.openai.com/api-keys" rel="noopener">platform.openai.com</a> · Modell z. B. <code>gpt-5</code> · Adresse leer lassen</dd>
+        <dt>OpenRouter</dt>
+        <dd><a href="https://openrouter.ai/keys" rel="noopener">openrouter.ai/keys</a> · Modell z. B. <code>anthropic/claude-opus-4.5</code> · Adresse <code>https://openrouter.ai/api/v1</code></dd>
+        <dt>Lokal (Ollama)</dt>
+        <dd>kein Schlüssel nötig · Modell z. B. <code>qwen3.5:4b</code> · Adresse <code>http://localhost:11434/v1</code> · Denkmodus <em>Aus</em>, sonst wartet man auf der CPU minutenlang</dd>
+    </dl>
+</div>

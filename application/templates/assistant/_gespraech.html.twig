@@ -1,0 +1,92 @@
+{# Das Gespräch mit dem Assistenten: Fehler, die vorbereiteten Änderungen und
+   der Verlauf, neueste zuerst. Steht im Fenster unter dem Eingabefeld (siehe
+   public/js/assistent.js) ebenso wie auf der Seite /admin/assistent. Die
+   Formulare darin schickt das Fenster im Hintergrund ab (data-assistent-aktion). #}
+<div class="assistent-gespraech">
+    {% for meldung in fehler %}
+        <div class="alert alert-danger">{{ meldung }}</div>
+    {% endfor %}
+
+    {% if aktiv is null %}
+        <div class="card assistant-setup">
+            <strong>Noch kein Modell angeschlossen</strong>
+            <p>
+                Der Assistent braucht ein Sprachmodell – Claude von Anthropic ebenso wie
+                alles, was die Schnittstelle von OpenAI spricht.
+            </p>
+            <p><a href="{{ path('admin_assistant_model_new') }}" class="btn btn-primary btn-sm">Modell anschließen</a></p>
+        </div>
+    {% endif %}
+
+    {% if vorschau is not empty %}
+        <div class="card proposal">
+            <div class="proposal-head">
+                <strong>{{ vorschau|length == 1 ? 'Diese Änderung ist vorbereitet' : 'Diese Änderungen sind vorbereitet' }}</strong>
+                <span class="muted">Nichts davon ist bisher gespeichert.</span>
+            </div>
+
+            {% for aktion in vorschau %}
+                <div class="proposal-item">
+                    <div class="proposal-title">{{ aktion.summary }}</div>
+                    {% if aktion.details is not empty %}
+                        <dl class="proposal-details">
+                            {% for label, wert in aktion.details %}
+                                <dt>{{ label }}</dt><dd>{{ wert }}</dd>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="proposal-actions">
+                <form method="post" action="{{ path('admin_assistant_apply') }}" class="inline-form" data-assistent-aktion>
+                    <input type="hidden" name="_token" value="{{ csrf_token('assistant_apply') }}">
+                    <button class="btn btn-primary btn-sm">Übernehmen</button>
+                </form>
+                <form method="post" action="{{ path('admin_assistant_discard') }}" class="inline-form" data-assistent-aktion>
+                    <input type="hidden" name="_token" value="{{ csrf_token('assistant_discard') }}">
+                    <button class="btn btn-ghost btn-sm">Verwerfen</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if verlauf is empty %}
+        {% if aktiv %}
+            <p class="assistent-beispiele muted">
+                Frag nach allem in der Verwaltung oder sag, was anzutragen ist:
+                „Was ist bei Müller noch offen?“ · „Wie viel habe ich im Oktober abgerechnet?“ ·
+                „2 Stunden auf die Shop-Anpassung, Caching eingebaut“ ·
+                „Leg für Mirwena ein Projekt Website-Relaunch an“ ·
+                „Rechnung 26-1003-2 ist bezahlt“
+            </p>
+        {% endif %}
+    {% else %}
+        <div class="chat">
+            {# Neueste zuerst – das Eingabefeld steht darüber. #}
+            {% for eintrag in verlauf|reverse %}
+                <div class="chat-row is-{{ eintrag.role }}">
+                    <div class="chat-bubble">
+                        {% if eintrag.role == 'assistant' %}
+                            {{ eintrag.text|assistent_text }}
+                        {% else %}
+                            {{ eintrag.text|nl2br }}
+                        {% endif %}
+                        {% if eintrag.links is defined and eintrag.links is not empty %}
+                            <span class="chat-links">
+                                {% for verweis in eintrag.links %}
+                                    <a href="{{ verweis.link }}" class="chip">{{ verweis.titel ?: 'Öffnen' }} →</a>
+                                {% endfor %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{{ path('admin_assistant_clear') }}" class="assistent-leeren" data-assistent-aktion>
+            <input type="hidden" name="_token" value="{{ csrf_token('assistant_clear') }}">
+            <button class="btn btn-ghost btn-sm">Verlauf leeren</button>
+        </form>
+    {% endif %}
+</div>

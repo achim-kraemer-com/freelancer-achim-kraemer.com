@@ -1,0 +1,43 @@
+{# Die beiden Fenster hinter Lupe und „A" (siehe _admin_tools.html.twig),
+   samt der Skripte dazu. Eingebunden wird das hier von _admin_nav.html.twig –
+   so hat jede Seite mit der Navigationsleiste auch die Fenster, ganz gleich,
+   ob sie auf admin/layout.html.twig steht oder wie das Dashboard auf
+   base.html.twig.
+
+   Das Gespräch unter dem Eingabefeld lädt das Fenster beim Öffnen nach – so
+   steht auf jeder Seite der aktuelle Stand, ohne dass jede Seite ihn
+   mitrechnet. #}
+<dialog class="admin-fenster" id="suche-dialog" aria-label="Suche">
+    <form method="get" action="{{ path('admin_suche') }}" class="fenster-feld" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.6-3.6"></path>
+        </svg>
+        <label for="suche-eingabe" class="visually-hidden">Suchbegriff</label>
+        <input type="search" id="suche-eingabe" name="q" maxlength="200" autocomplete="off"
+               placeholder="Kunden, Projekte, Aufgaben, Rechnungen … durchsuchen">
+        <button class="btn btn-primary btn-sm fenster-senden">Suchen</button>
+    </form>
+    <div class="fenster-ausgabe" aria-live="polite">
+        <p class="fenster-hinweis muted">Stichwort oder Frage eingeben, etwa „Rechnung Mirwena“ oder „Aufgaben von Müller im Oktober“ – die KI sucht in allen Bereichen.</p>
+    </div>
+</dialog>
+
+<dialog class="admin-fenster" id="assistent-dialog" aria-label="Assistent">
+    <form method="post" action="{{ path('admin_assistant_ask') }}" class="fenster-feld"
+          data-abschliessen="{{ path('admin_assistant_finish', {teil: 1}) }}">
+        <span class="assistent-mark" aria-hidden="true">A</span>
+        <input type="hidden" name="_token" value="{{ csrf_token('assistant_ask') }}">
+        <label for="assistent-eingabe" class="visually-hidden">Nachricht an den Assistenten</label>
+        <textarea id="assistent-eingabe" name="nachricht" rows="1" maxlength="2000" autocomplete="off"
+                  placeholder="Frag oder sag, was einzutragen ist …"></textarea>
+        <button class="btn btn-primary btn-sm fenster-senden">Senden</button>
+    </form>
+    <div class="fenster-ausgabe" aria-live="polite" data-gespraech="{{ path('admin_assistant_index', {teil: 1}) }}"></div>
+</dialog>
+
+{# Mit defer laufen sie nach dem Aufbau der Seite und in dieser Reihenfolge:
+   fenster.js legt window.adminFenster an, die beiden anderen benutzen es. #}
+<script defer src="{{ asset('js/fenster.js') }}"></script>
+<script defer src="{{ asset('js/suche.js') }}"></script>
+<script defer src="{{ asset('js/assistent.js') }}"></script>

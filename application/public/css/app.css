@@ -697,3 +697,188 @@ td .signature-html { min-width: 16rem; max-width: 40rem; padding: 0.75rem 0.9rem
 .signatur-werkzeuge [aria-pressed="true"] { background: rgba(255,255,255,0.12); color: #fff; }
 .signatur-editor { min-height: 12rem; outline: none; cursor: text; margin-bottom: 1.1rem; }
 .signatur-editor:focus { box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.35); }
+
+/* ==========================================================================
+   KI-Suche und Assistent – nach dem Vorbild des Portals
+   Lupe und „A" in der Navigation öffnen je ein Fenster (templates/
+   _admin_fenster.html.twig, public/js/{fenster,suche,assistent}.js); ohne
+   JavaScript führen sie auf /admin/suche und /admin/assistent.
+   ========================================================================== */
+.visually-hidden {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Lupe und „A" in der Navigationsleiste */
+.admin-nav .nav-werkzeuge { display: flex; align-items: center; gap: 0.15rem; flex: none; }
+.nav-werkzeug {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.1rem; height: 2.1rem; border-radius: 0.6rem;
+    color: var(--text-muted); transition: color 0.15s, background 0.15s;
+}
+.nav-werkzeug:hover, .nav-werkzeug.active { color: #fff; background: rgba(255,255,255,0.07); }
+.nav-werkzeug svg { width: 1.15rem; height: 1.15rem; }
+.assistent-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-2));
+    color: #fff; font-size: 0.78rem; font-weight: 700; flex: none;
+}
+.nav-werkzeug:hover .assistent-mark, .nav-werkzeug.active .assistent-mark {
+    box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.35);
+}
+
+/* Das Fenster selbst */
+dialog.admin-fenster {
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+    padding: 0;
+    width: min(42rem, calc(100vw - 2rem));
+    max-height: min(44rem, calc(100dvh - 4rem));
+    margin: 8vh auto auto;
+    overflow: hidden;
+}
+dialog.admin-fenster[open] { display: flex; flex-direction: column; }
+dialog.admin-fenster::backdrop { background: rgba(8, 11, 17, 0.7); backdrop-filter: blur(3px); }
+.fenster-feld {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.75rem 0.9rem; border-bottom: 1px solid var(--border);
+}
+.fenster-feld > svg { width: 1.2rem; height: 1.2rem; color: var(--text-dim); flex: none; }
+.fenster-feld input[type="search"], .fenster-feld textarea {
+    flex: 1; min-width: 0; border: none; background: none; box-shadow: none;
+    padding: 0.4rem 0; margin: 0; font-size: 1.05rem; color: var(--text);
+}
+.fenster-feld textarea { resize: none; font: inherit; font-size: 1.05rem; line-height: 1.45; max-height: 10rem; overflow-y: hidden; }
+.fenster-feld input[type="search"]:focus, .fenster-feld textarea:focus { outline: none; box-shadow: none; background: none; }
+.fenster-ausgabe { overflow-y: auto; padding: 1rem; }
+.fenster-ausgabe:empty { display: none; }
+.admin-fenster.is-beschaeftigt .fenster-senden { opacity: 0.6; pointer-events: none; }
+.fenster-hinweis, .suche-hinweis { margin: 0 0 0.75rem; font-size: 0.85rem; line-height: 1.5; color: var(--text-dim); }
+.fenster-laedt {
+    margin: 0 0 0.75rem; color: var(--text-muted); font-size: 0.9rem;
+    animation: fenster-puls 1.4s ease-in-out infinite;
+}
+@keyframes fenster-puls { 50% { opacity: 0.45; } }
+
+/* Die Ergebnisse der Suche – im Fenster wie auf der Seite */
+.suche-seite-form { display: flex; gap: 0.75rem; align-items: center; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+.suche-seite-form input[type="search"] {
+    flex: 1; min-width: 0; padding: 0.6rem 0.8rem; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 0.6rem;
+}
+.suche-plan { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-bottom: 1rem; font-size: 0.8rem; }
+.suche-plan .chip { margin-left: 0; }
+.suche-plan .suche-zeitraum { color: var(--accent); }
+.suche-ergebnis .empty { padding: 2rem 1rem; }
+.suche-gruppen { display: flex; flex-direction: column; gap: 1rem; }
+.suche-gruppe-kopf {
+    display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-dim);
+}
+.suche-anzahl {
+    padding: 0.05rem 0.45rem; border-radius: 999px; font-size: 0.7rem;
+    color: var(--text-muted); background: rgba(255,255,255,0.06);
+}
+.suche-liste { display: flex; flex-direction: column; gap: 0.35rem; }
+.suche-treffer {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 0.7rem;
+    background: rgba(255,255,255,0.02); color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+}
+.suche-treffer:hover, .suche-treffer:focus-visible {
+    outline: none; border-color: rgba(192,132,252,0.45); background: rgba(255,255,255,0.05);
+}
+.suche-treffer .treffer-haupt { flex: 1; min-width: 0; }
+.suche-treffer .treffer-titel {
+    display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.suche-treffer:hover .treffer-titel { color: var(--accent); }
+.suche-treffer .treffer-meta {
+    display: block; margin-top: 0.1rem; font-size: 0.8rem; color: var(--text-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.suche-treffer .treffer-seite {
+    flex: none; text-align: right; font-size: 0.78rem; line-height: 1.5; color: var(--text-muted);
+}
+
+/* Das Gespräch mit dem Assistenten */
+.assistant-input { display: flex; align-items: flex-end; gap: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.assistant-input textarea {
+    flex: 1; min-width: 0; margin: 0; resize: vertical;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 0.6rem;
+}
+.assistant-input-actions { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+.model-hint { font-size: 0.78rem; color: var(--text-dim); }
+.assistant-setup { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+.assistant-setup strong { display: block; color: #fff; margin-bottom: 0.35rem; }
+.assistant-setup p { margin: 0.5rem 0; color: var(--text-muted); font-size: 0.92rem; }
+.chat { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+.chat-row { display: flex; }
+.chat-row.is-user { justify-content: flex-end; }
+.chat-bubble {
+    max-width: 85%; padding: 0.7rem 1rem; border-radius: var(--radius);
+    border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+    font-size: 0.95rem; line-height: 1.55; overflow-wrap: anywhere;
+}
+.chat-row.is-user .chat-bubble {
+    border-color: rgba(168,85,247,0.35); background: rgba(168,85,247,0.12);
+    border-bottom-right-radius: 0.35rem;
+}
+.chat-row.is-assistant .chat-bubble { border-bottom-left-radius: 0.35rem; }
+.chat-bubble a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.chat-links { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+.chat-bubble .chat-links a.chip { margin-left: 0; color: var(--accent); text-decoration: none; }
+.chat-bubble .chat-links a.chip:hover { border-color: var(--accent); }
+.assistent-beispiele { margin: 0; font-size: 0.85rem; line-height: 1.7; }
+.assistent-leeren { display: flex; justify-content: flex-end; margin: 0; }
+/* Die Antwort, während sie entsteht (assistent.js): Text so, wie er kommt. */
+.assistent-strom { white-space: pre-wrap; }
+.assistent-strom:empty { display: none; }
+.assistent-live .assistent-taetigkeit { margin: 0; }
+
+/* Die Vorschau der vorbereiteten Änderungen – gespeichert ist noch nichts. */
+.proposal { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; border-color: rgba(192, 132, 252, 0.35); }
+.proposal-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.proposal-head strong { color: #fff; }
+.proposal-head .muted { font-size: 0.85rem; color: var(--text-dim); }
+.proposal-item {
+    padding: 0.7rem 0.9rem; border-left: 3px solid var(--accent-strong);
+    border-radius: 0 0.6rem 0.6rem 0; background: rgba(255,255,255,0.03);
+}
+.proposal-item + .proposal-item { margin-top: 0.6rem; }
+.proposal-title { font-weight: 600; color: #fff; }
+.proposal-details {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.9rem;
+    margin: 0.5rem 0 0; font-size: 0.85rem;
+}
+.proposal-details dt { color: var(--text-dim); }
+.proposal-details dd { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
+.proposal-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+
+/* Im Fenster sitzt alles enger als auf der Seite. */
+.admin-fenster .chat { margin-bottom: 0.75rem; }
+.admin-fenster .chat-bubble { max-width: 90%; font-size: 0.92rem; padding: 0.6rem 0.85rem; }
+.admin-fenster .proposal, .admin-fenster .assistant-setup { padding: 1rem; margin-bottom: 1rem; }
+.admin-fenster .alert { margin-bottom: 1rem; }
+
+/* Woher Schlüssel und Modellname kommen – unter dem Formular. */
+.modell-hilfe { margin-top: 2rem; font-size: 0.85rem; color: var(--text-muted); }
+.modell-hilfe strong { display: block; margin-bottom: 0.6rem; color: var(--text); }
+.modell-hilfe dl { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1rem; margin: 0; }
+.modell-hilfe dt { color: var(--text-dim); white-space: nowrap; }
+.modell-hilfe dd { margin: 0; }
+.modell-hilfe code {
+    padding: 0.05rem 0.3rem; border-radius: 0.3rem;
+    background: rgba(255,255,255,0.07); font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+    .suche-treffer .treffer-seite { display: none; }
+    .assistant-input { flex-direction: column; align-items: stretch; }
+}

@@ -1,0 +1,17 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Modell anschließen · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="breadcrumb"><a href="{{ path('admin_assistant_model_index') }}">Modelle</a> / Neu</div>
+    <div class="page-head">
+        <div>
+            <h1>Modell anschließen</h1>
+            <p class="sub">Anthropic oder alles, was die Schnittstelle von OpenAI spricht.</p>
+        </div>
+    </div>
+
+    <div class="card form-card">
+        {% include 'assistant_model/_form.html.twig' with { submit_label: 'Modell anlegen' } %}
+    </div>
+{% endblock %}

@@ -74,6 +74,73 @@ zu sehen). Lokal zeigt die Vorgabe aus `.env` auf den Portal-Stack
 erreichbar, sagt die Kontaktauswahl das in einem Satz – die Kundenverwaltung
 läuft unverändert weiter.
 
+## KI-Suche und Assistent
+
+Nach dem Vorbild von [portal.achim-kraemer.com](https://portal.achim-kraemer.com): In der
+Navigation stehen eine **Lupe** und ein **„A"**. Beide öffnen ein Fenster, das auf jeder
+Seite der Verwaltung erreichbar ist; ohne JavaScript führen sie auf die eigenen Seiten
+`/admin/suche` und `/admin/assistent`.
+
+### Lupe: Suche über alles (`/admin/suche`, ⌘K bzw. Strg+K)
+
+Ein Feld für **Kunden, Projekte, Aufgaben, Rechnungen und Zeiten** zugleich. Die Eingabe
+geht zuerst an das Sprachmodell, das daraus Suchbegriffe, Zeitraum und Bereiche macht
+(„Rechnungen von Müller im Oktober"); gesucht wird danach in der Datenbank – **ein
+Modellaufruf je Suche**, egal wie viel dort liegt. Was die KI verstanden hat, steht offen
+über den Treffern, sonst wäre nicht zu erklären, warum ein Treffer kommt oder fehlt.
+
+Ohne angeschlossenes Modell – oder wenn der Anbieter gerade nicht erreichbar ist – wird
+nach dem **Wortlaut** gesucht, und die Seite sagt das in einem Satz. Die Suche fällt also
+nie aus.
+
+### „A": Der Assistent (`/admin/assistent`)
+
+Beantwortet Fragen zum Bestand und bereitet Änderungen vor. Die Antwort entsteht sichtbar,
+während das Modell schreibt; dazwischen steht, was es gerade nachsieht.
+
+**Geändert wird nichts ohne Bestätigung.** Jede schreibende Aktion erscheint erst als
+Vorschau mit allen Werten und wird erst mit „Übernehmen" ausgeführt – „Verwerfen" wirft
+sie weg, und eine neue Frage ersetzt sie.
+
+| Werkzeug                            | Art         | Wirkung                                                                 |
+|-------------------------------------|-------------|-------------------------------------------------------------------------|
+| `suchen`                            | lesend      | dieselbe Suche wie hinter der Lupe, mit IDs und Links                     |
+| `kunde_lesen`, `projekt_lesen`      | lesend      | ein Kunde bzw. Projekt im Ganzen, mit Summen                              |
+| `zahlen_lesen`                      | lesend      | Umsatz, offene und überfällige Rechnungen, Stunden, nicht Abgerechnetes   |
+| `kunde_anlegen`, `projekt_anlegen`  | schreibend  | neuer Kunde (nach denselben Regeln wie das Formular), neues Projekt       |
+| `aufgabe_anlegen`, `aufgabe_aendern`| schreibend  | Aufgabe mit Stunden **oder** Festpreis; abgerechnete sind gesperrt        |
+| `zeit_erfassen`                     | schreibend  | Zeiteintrag + Stunden der Aufgabe, wie das Beenden der Stoppuhr           |
+| `rechnung_status`                   | schreibend  | erstellt → verschickt → bezahlt (mit Zahlungstag)                         |
+
+**Rechnungen erstellt der Assistent nicht.** Dazu gehören die Auswahl der Aufgaben, die
+Vorlage für den Briefkopf, die Signatur und eine Rechnungsnummer, die nie wieder anders
+lauten darf – das bleibt die Projektseite.
+
+Gespräch und offene Vorschau liegen in der **Sitzung**, nicht in der Datenbank: Wert hat,
+was am Ende in Kunden, Aufgaben und Rechnungen steht.
+
+### Modelle anschließen (`/admin/modell`)
+
+Suche und Assistent brauchen ein Sprachmodell. Zwei Sorten reichen für alles: **Anthropic**
+(Claude) und **OpenAI-kompatibel** – also OpenAI, OpenRouter, Groq, Together, Google über
+seinen OpenAI-Endpunkt sowie lokale Modelle über Ollama oder LM Studio; der Unterschied
+steckt allein in der Adresse. Jedes Modell gehört dem Benutzer, der es angeschlossen hat
+(der Schlüssel ist seiner, und abgerechnet wird darüber); verwendet wird das als
+**Vorgabe** markierte. „Test" schickt eine kurze Anfrage hin und zeigt, was zurückkommt.
+
+Der API-Schlüssel liegt **verschlüsselt** in der Datenbank (XSalsa20-Poly1305,
+`src/Service/SecretCipher.php`). Dafür ist in `application/.env.local` ein eigener
+Schlüssel einzutragen:
+
+```dotenv
+APP_CRYPTO_KEY=…
+```
+
+Erzeugen mit `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`. Die Vorgabe aus
+`.env` ist öffentlich bekannt und wird außerhalb von `APP_ENV=dev` abgewiesen. Wird der
+Schlüssel getauscht, sind die gespeicherten API-Schlüssel nicht mehr lesbar und müssen
+unter **Modelle** neu eingetragen werden.
+
 ## Stack
 
 - **Symfony 8.1** (PHP 8.5)
@@ -81,6 +148,8 @@ läuft unverändert weiter.
 - **Security-Bundle** – Formular-Login (`form_login`), CSRF, „Angemeldet bleiben", Access-Control
 - **Twig** + **Symfony Form** + handgeschriebenes CSS (kein Build-Step nötig) unter `application/public/css/app.css`
 - **PDF-Rechnungen** mit `setasign/fpdi` + `tecnickcom/tcpdf:^6.7` (6.x wegen FPDI-Kompatibilität)
+- **KI-Suche und Assistent** mit `anthropic-ai/sdk` (Claude) bzw. `symfony/http-client` für
+  alles OpenAI-Kompatible; Schlüssel verschlüsselt über `ext-sodium`
 - Lokale Entwicklung über **Docker Compose** (Apache/PHP, DB, Adminer, Mailcatcher)
 
 Das eigentliche Symfony-Projekt liegt im Unterordner `application/`.
@@ -133,6 +202,9 @@ Stoppen mit `bin/down`.
 | `app_login`      | `/login`     | öffentlich    |
 | `app_logout`     | `/logout`    | –             |
 | `app_dashboard`  | `/dashboard` | `ROLE_USER`   |
+| `admin_suche`    | `/admin/suche`     | `ROLE_ADMIN` |
+| `admin_assistant_index` | `/admin/assistent` | `ROLE_ADMIN` |
+| `admin_assistant_model_index` | `/admin/modell` | `ROLE_ADMIN` |
 
 Wichtige Dateien:
 
@@ -145,6 +217,13 @@ Wichtige Dateien:
 - `application/src/Service/PortalContacts.php` – liest das Adressbuch des Portals;
   `PortalContact.php` (ein Kontakt), `ContactToCustomer.php` (Kontakt → Kunde),
   `PortalError.php` (Portal weg / Token falsch / Antwort kaputt)
+- `application/src/Service/Suche/` – `Suchplan` (wonach gesucht wird), `KiSuchplaner`
+  (Eingabe → Suchplan), `Gesamtsuche` (die Abfrage über alle Bereiche)
+- `application/src/Service/Assistant/` – `Assistant` (das Gespräch samt Werkzeugschleife),
+  `ChatModel`/`AnthropicChat`/`OpenAiChat`/`ChatModelFactory` (die Anbieter),
+  `Werkzeugkasten` + `Werkzeuge/` (lesen, planen, übernehmen)
+- `application/public/js/` – `fenster.js` (öffnen/schließen/Pfeiltasten), `suche.js`,
+  `assistent.js` (Strom der Antwort, Übernehmen/Verwerfen im Hintergrund)
 - `docker/docker-compose.yml` – lokale Infrastruktur (Projektname `freelancer-ak`)
 
 ## Helfer-Skripte (`bin/`)

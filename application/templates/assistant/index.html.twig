@@ -1,0 +1,32 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Assistent · Freelancer-Pro{% endblock %}
+
+{# Die Seite hinter dem „A" in der Navigation, wenn kein JavaScript läuft –
+   sonst öffnet das „A" das Fenster aus _admin_tools.html.twig. #}
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Assistent</h1>
+            <p class="sub">Fragen zu Kunden, Projekten, Aufgaben und Rechnungen, neue Einträge und erfasste Zeiten – geändert wird erst nach deiner Bestätigung.</p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_assistant_model_index') }}" class="btn btn-ghost">Modelle</a>
+        </div>
+    </div>
+
+    <form method="post" action="{{ path('admin_assistant_ask') }}" class="card assistant-input">
+        <input type="hidden" name="_token" value="{{ csrf_token('assistant_ask') }}">
+        <label for="assistant-text" class="visually-hidden">Nachricht an den Assistenten</label>
+        <textarea id="assistant-text" name="nachricht" rows="2" maxlength="2000" autocomplete="off"
+                  placeholder="Was soll ich nachsehen oder eintragen?" {{ aktiv is null ? 'disabled' }}></textarea>
+        <div class="assistant-input-actions">
+            {% if aktiv %}
+                <span class="model-hint" title="{{ aktiv.describe }}">{{ aktiv.label }}</span>
+            {% endif %}
+            <button class="btn btn-primary" {{ aktiv is null ? 'disabled' }}>Senden</button>
+        </div>
+    </form>
+
+    {{ include('assistant/_gespraech.html.twig') }}
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Modelle · Freelancer-Pro{% endblock %}
+
+{% block admin_body %}
+    <div class="page-head">
+        <div>
+            <h1>Modelle für Suche und Assistent</h1>
+            <p class="sub">{{ models|length }} angeschlossen · Schlüssel werden verschlüsselt gespeichert</p>
+        </div>
+        <div class="head-actions">
+            <a href="{{ path('admin_assistant_model_new') }}" class="btn btn-primary">+ Modell</a>
+            <a href="{{ path('admin_assistant_index') }}" class="btn btn-ghost">Zum Assistenten</a>
+        </div>
+    </div>
+
+    {% if models is empty %}
+        <div class="empty">
+            <strong>Noch kein Modell angeschlossen</strong><br>
+            Die KI-Suche und der Assistent brauchen ein Sprachmodell – Claude von Anthropic,
+            GPT von OpenAI, irgendetwas über OpenRouter oder ein Modell auf dem eigenen Rechner.
+            Ohne Modell sucht die Lupe nach dem Wortlaut, und der Assistent bleibt stumm.
+            <div style="margin-top:1.25rem">
+                <a href="{{ path('admin_assistant_model_new') }}" class="btn btn-primary">Modell anschließen</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Modell</th>
+                        <th>Adresse</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in models %}
+                        <tr>
+                            <td>
+                                {{ model.label }}
+                                {% if model.isDefault %}<span class="chip">Vorgabe</span>{% endif %}
+                            </td>
+                            <td class="muted">{{ model.model }}</td>
+                            <td class="muted">{{ model.resolveBaseUrl ?? 'api.anthropic.com' }}</td>
+                            <td>
+                                {% if model.lastError %}
+                                    <span class="status status-overdue" title="{{ model.lastError }}">Fehler</span>
+                                {% elseif model.lastCheckedAt %}
+                                    <span class="status status-erledigt">geprüft</span>
+                                {% elseif not model.hasApiKey and model.isAnthropic %}
+                                    <span class="status status-in-arbeit">kein Schlüssel</span>
+                                {% else %}
+                                    <span class="status status-offen">ungeprüft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <form method="post" action="{{ path('admin_assistant_model_test', {id: model.id}) }}" class="inline-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('test' ~ model.id) }}">
+                                        <button class="btn btn-ghost btn-sm">Test</button>
+                                    </form>
+                                    {% if not model.isDefault %}
+                                        <form method="post" action="{{ path('admin_assistant_model_default', {id: model.id}) }}" class="inline-form">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('default' ~ model.id) }}">
+                                            <button class="btn btn-ghost btn-sm">Als Vorgabe</button>
+                                        </form>
+                                    {% endif %}
+                                    <a href="{{ path('admin_assistant_model_edit', {id: model.id}) }}" class="btn btn-ghost btn-sm">Bearbeiten</a>
+                                    <form method="post" action="{{ path('admin_assistant_model_delete', {id: model.id}) }}" class="inline-form"
+                                          onsubmit="return confirm('Modell „{{ model.label|e('js') }}“ entfernen?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ model.id) }}">
+                                        <button class="btn btn-danger btn-sm">Entfernen</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% if model.lastError %}
+                            <tr>
+                                <td colspan="5" style="padding-top:0">
+                                    <span class="form-error">Letzter Test: {{ model.lastError }}</span>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}
