@@ -129,17 +129,23 @@ steckt allein in der Adresse. Jedes Modell gehört dem Benutzer, der es angeschl
 **Vorgabe** markierte. „Test" schickt eine kurze Anfrage hin und zeigt, was zurückkommt.
 
 Der API-Schlüssel liegt **verschlüsselt** in der Datenbank (XSalsa20-Poly1305,
-`src/Service/SecretCipher.php`). Dafür ist in `application/.env.local` ein eigener
-Schlüssel einzutragen:
+`src/Service/SecretCipher.php`). Einzurichten ist dafür nichts: Steht in
+`APP_CRYPTO_KEY` nichts oder nur die öffentlich bekannte Vorgabe aus `.env`, leitet die
+Anwendung das Schlüsselmaterial aus **`APP_SECRET`** ab – das ist auf jedem Server
+ohnehin eigen und geheim. Ein frisch deployter Server kann also sofort Modelle anlegen.
+
+Wer beides trennen will, trägt einen eigenen Wert in `application/.env.local` ein; er hat
+dann Vorrang:
 
 ```dotenv
 APP_CRYPTO_KEY=…
 ```
 
-Erzeugen mit `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`. Die Vorgabe aus
-`.env` ist öffentlich bekannt und wird außerhalb von `APP_ENV=dev` abgewiesen. Wird der
-Schlüssel getauscht, sind die gespeicherten API-Schlüssel nicht mehr lesbar und müssen
-unter **Modelle** neu eingetragen werden.
+Erzeugen mit `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`. Wird das benutzte
+Material getauscht – eigener Schlüssel gesetzt oder `APP_SECRET` rotiert –, sind die
+gespeicherten API-Schlüssel nicht mehr lesbar und müssen unter **Modelle** neu eingetragen
+werden. Stehen `APP_CRYPTO_KEY` **und** `APP_SECRET` außerhalb von `dev` noch auf den
+Werten aus dem Repo, verweigert der Cipher den Dienst – dann fehlt die `.env.local`.
 
 ## Stack
 

@@ -13,6 +13,17 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * Ein solcher Schlüssel muss im Klartext an den Anbieter gehen, darf also
  * nicht gehasht werden. Er liegt deshalb verschlüsselt in der Datenbank – wer
  * nur die Datenbank in die Hände bekommt, kann damit nichts anfangen.
+ *
+ * Das Schlüsselmaterial kommt aus APP_CRYPTO_KEY. Steht dort nichts oder nur
+ * der öffentlich bekannte Wert aus der versionierten .env, wird es aus
+ * APP_SECRET abgeleitet – das ist auf jedem Server ohnehin eigen und geheim.
+ * So laufen Modelle und Assistent nach einem Deploy sofort, ohne dass jemand
+ * erst eine Zeile in die .env.local schreibt; wer den Schlüssel trennen will,
+ * setzt APP_CRYPTO_KEY und hat Vorrang.
+ *
+ * Beides gilt: Wird das benutzte Material getauscht (eigener Schlüssel gesetzt
+ * oder APP_SECRET rotiert), sind die gespeicherten Schlüssel nicht mehr lesbar
+ * und müssen unter Modelle neu eingetragen werden.
  */
 final class SecretCipher
 {
@@ -27,45 +38,57 @@ final class SecretCipher
         'ChangeMe',
     ];
 
+    /**
+     * Damit aus APP_SECRET ein eigener Schlüssel wird und nicht derselbe Wert,
+     * mit dem Symfony Formulare und „Angemeldet bleiben" signiert.
+     */
+    private const ABLEITUNG = 'app.assistant.model.key';
+
     private readonly string $key;
 
     public function __construct(
         #[Autowire('%env(APP_CRYPTO_KEY)%')] string $key,
+        #[Autowire('%kernel.secret%')] string $appSecret,
         #[Autowire('%kernel.environment%')] string $environment,
     ) {
-        $key = \trim($key);
+        $key       = \trim($key);
+        $appSecret = \trim($appSecret);
 
-        if ($key === '') {
+        // Ein eigener Schlüssel hat Vorrang; sonst wird aus APP_SECRET einer
+        // abgeleitet.
+        if ($key !== '' && !\in_array($key, self::UNSAFE_KEYS, true)) {
+            $raw = \base64_decode($key, true);
+
+            // Wer keinen base64-Wert einträgt, bekommt seinen Text als Material.
+            if ($raw === false || $raw === '') {
+                $raw = $key;
+            }
+
+            // Beliebig langes Schlüsselmaterial auf die benötigten 32 Byte verdichten.
+            $this->key = \strlen($raw) === \SODIUM_CRYPTO_SECRETBOX_KEYBYTES
+                ? $raw
+                : \sodium_crypto_generichash($raw, '', \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+
+            return;
+        }
+
+        // Ein öffentlich bekannter Wert in der Produktion wäre so gut wie gar
+        // keine Verschlüsselung – jeder mit Zugriff auf die Datenbank könnte
+        // die hinterlegten Schlüssel im Klartext lesen. Steht auch APP_SECRET
+        // noch auf dem Wert aus dem Repo, hilft die Ableitung nicht. In dev und
+        // test wird nichts Echtes verschlüsselt; dort darf beides so bleiben.
+        if (!\in_array($environment, ['dev', 'test'], true)
+            && (\in_array($appSecret, self::UNSAFE_KEYS, true) || $appSecret === '')
+        ) {
             throw new \LogicException(
-                'APP_CRYPTO_KEY ist nicht gesetzt. Ohne diesen Schlüssel lassen sich die '
-                .'Schlüssel der Sprachmodelle weder speichern noch lesen. Einen erzeugen mit: '
-                ."php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'",
+                'Weder APP_CRYPTO_KEY noch APP_SECRET sind gesetzt – beide stehen noch auf '
+                .'dem Wert aus der versionierten .env, und der ist öffentlich bekannt. '
+                .'Die Produktionswerte gehören in die .env.local; einen eigenen Schlüssel '
+                ."erzeugt php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'",
             );
         }
 
-        // Ein bekannter Entwicklungsschlüssel in der Produktion wäre so gut wie
-        // gar keine Verschlüsselung – jeder mit Zugriff auf die Datenbank könnte
-        // die hinterlegten Schlüssel im Klartext lesen. In den Tests wird nichts
-        // Echtes verschlüsselt; dort darf der Wert aus der .env stehen bleiben.
-        if (!\in_array($environment, ['dev', 'test'], true) && \in_array($key, self::UNSAFE_KEYS, true)) {
-            throw new \LogicException(
-                'APP_CRYPTO_KEY steht noch auf dem Entwicklungswert. Dieser Wert ist '
-                .'öffentlich bekannt und darf außerhalb der lokalen Entwicklung nicht '
-                ."verwendet werden. Einen eigenen erzeugen mit: "
-                ."php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'",
-            );
-        }
-
-        $raw = \base64_decode($key, true);
-
-        if ($raw === false || $raw === '') {
-            $raw = $key;
-        }
-
-        // Beliebig langes Schlüsselmaterial auf die benötigten 32 Byte verdichten.
-        $this->key = \strlen($raw) === \SODIUM_CRYPTO_SECRETBOX_KEYBYTES
-            ? $raw
-            : \sodium_crypto_generichash($raw, '', \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+        $this->key = \sodium_crypto_generichash($appSecret, self::ABLEITUNG, \SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
     }
 
     public function encrypt(?string $plain): ?string
