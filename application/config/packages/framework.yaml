@@ -5,6 +5,11 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    assets:
+        # Version = Aenderungszeitpunkt der Datei, damit ein Browser nach einer
+        # Aenderung nicht das alte CSS weiterverwendet.
+        version_strategy: App\Asset\FileModificationVersionStrategy
+
     #esi: true
     #fragments: true
 

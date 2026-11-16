@@ -47,7 +47,9 @@ final class SucheTest extends WebTestCase
 
         self::assertCount(1, $crawler->filter('dialog#suche-dialog'));
         self::assertCount(1, $crawler->filter('dialog#assistent-dialog'));
-        self::assertCount(1, $crawler->filter('script[src$="/js/fenster.js"]'));
+        // *= statt $=: An der Adresse haengt der Aenderungszeitpunkt der Datei
+        // (App\Asset\FileModificationVersionStrategy), sie endet also auf ?v=…
+        self::assertCount(1, $crawler->filter('script[src*="/js/fenster.js"]'));
     }
 
     /**

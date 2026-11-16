@@ -8,7 +8,10 @@
    Textes (currentColor) und wächst mit der Schriftgröße (1.15em).
 
    Aufruf: {{ include('_symbol.html.twig', {name: 'kunden'}) }} #}
-<svg class="symbol symbol-{{ name }}" viewBox="0 0 24 24"
+{# width/height stehen am Element, nicht nur in der CSS: Ein SVG ohne eigene
+   Groesse waechst sonst auf die volle Breite seines Kastens, sobald die CSS
+   einmal nicht da ist. Die Regeln fuer .symbol gewinnen trotzdem. #}
+<svg class="symbol symbol-{{ name }}" viewBox="0 0 24 24" width="20" height="20"
      fill="none" stroke="currentColor"
      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
      aria-hidden="true" focusable="false">
